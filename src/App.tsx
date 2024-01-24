@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import type { Session } from '@supabase/supabase-js';
+import Game from './Game';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -27,8 +28,18 @@ export default function App() {
   }, []);
 
   if (!session) {
-    return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
+    return (
+      <div className='w-full h-full flex justify-center items-center'>
+        <div className='flex w-max'>
+          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+        </div>
+      </div>
+    );
   } else {
-    return <div>Logged in!</div>;
+    return (
+      <div>
+        <Game supabase={supabase} />
+      </div>
+    );
   }
 }
