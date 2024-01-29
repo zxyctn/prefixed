@@ -38,7 +38,7 @@ export default function App() {
   } else {
     return (
       <div>
-        <Game supabase={supabase} />
+        <Game supabaseClient={supabase} />
       </div>
     );
   }
