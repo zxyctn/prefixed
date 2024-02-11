@@ -13,12 +13,22 @@ export default {
           accent: '#BD00FF',
           neutral: '#484848',
           'base-100': '#0B0B0B',
+          'base-100-content': '#FFFFFF',
           info: '#00E0FF',
           success: '#42FF00',
           warning: '#FFE500',
           error: '#FF0000',
           '--rounded-btn': '0',
           '--rounded-box': '0',
+          body: {
+            color: '#ffffff',
+          },
+          '.btn-primary': {
+            color: '#FFFFFF',
+          },
+          '.btn-secondary': {
+            color: '#000000',
+          },
         },
 
         light: {
@@ -33,6 +43,15 @@ export default {
           error: '#FF0000',
           '--rounded-btn': '0',
           '--rounded-box': '0',
+          body: {
+            color: '#000000',
+          },
+          '.btn-primary': {
+            color: '#FFFFFF',
+          },
+          '.btn-secondary': {
+            color: '#ffffff',
+          },
         },
       },
     ],
