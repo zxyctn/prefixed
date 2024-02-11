@@ -27,7 +27,7 @@ const InputField = ({
 
       <input
         type='text'
-        className={`bg-transparent text-2xl separated uppercase m-auto roboto-regular ${className}`}
+        className={`bg-transparent text-2xl separated uppercase m-auto roboto-regular max-w-[200px] ${className}`}
       />
     </div>
   );
