@@ -17,6 +17,10 @@ button:focus {
   outline: none;
 }
 
+.separated-min {
+  letter-spacing: 10px;
+}
+
 .separated {
   letter-spacing: 16px;
 }
