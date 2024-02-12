@@ -1,45 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import type { Session } from '@supabase/supabase-js';
-import Game from './Game';
+import React from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-const supabase = createClient(
-  `${process.env.VITE_SUPABASE_URL}`,
-  `${process.env.VITE_SUPABASE_API_KEY}`
-);
+import Root from './routes/root';
+import Home from './routes/Home';
+import Login from './routes/Login';
+import Register from './routes/Register';
+import Join from './routes/Join';
+import Create from './routes/Create';
+import Invites from './routes/Invites';
+import Settings from './routes/Settings';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Root />,
+    errorElement: <div>Error</div>,
+    children: [
+      {
+        path: '',
+        element: <Home />,
+      },
+      {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'register',
+        element: <Register />,
+      },
+      {
+        path: 'join',
+        element: <Join />,
+      },
+      {
+        path: 'create',
+        element: <Create />,
+      },
+      {
+        path: 'invites',
+        element: <Invites />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
+      },
+    ],
+  },
+]);
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (!session) {
-    return (
-      <div className='w-full h-full flex justify-center items-center'>
-        <div className='flex w-max'>
-          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div>
-        <Game supabaseClient={supabase} />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <RouterProvider router={router} />
+    </div>
+  );
 }
