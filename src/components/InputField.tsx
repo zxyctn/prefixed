@@ -1,17 +1,18 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
+
+import type { InputFieldProps } from '../types';
 
 const InputField = ({
   children = null,
   vertical = false,
   className = '',
-}: {
-  children?: ReactNode;
-  vertical?: boolean;
-  className?: string;
-}) => {
+  type = 'text',
+  required = false,
+  onChange,
+}: InputFieldProps) => {
   return (
     <div
-      className={`bg-transparent border-2 border-secondary p-6 justify-between flex gap-6 ${
+      className={`bg-transparent border-2 border-secondary md:p-6 p-4 justify-between w-min-[300px] h-[70px] md:h-[80px] flex gap-6 ${
         vertical ? 'grid gap-6' : ''
       }}`}
     >
@@ -26,8 +27,10 @@ const InputField = ({
       ) : null}
 
       <input
-        type='text'
-        className={`bg-transparent text-2xl separated uppercase m-auto roboto-regular max-w-[200px] ${className}`}
+        type={type}
+        onChange={onChange}
+        required={required}
+        className={`bg-transparent md:text-2xl text-xl uppercase m-auto roboto-regular w-min-[200px] ${className}`}
       />
     </div>
   );
