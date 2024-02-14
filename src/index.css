@@ -19,10 +19,12 @@ button:focus {
 
 .separated-min {
   letter-spacing: 10px;
+  margin-right: -10px;
 }
 
 .separated {
   letter-spacing: 16px;
+  margin-right: -16px;
 }
 
 .roboto-thin {
