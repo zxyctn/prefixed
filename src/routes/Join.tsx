@@ -1,6 +1,8 @@
 import React from 'react';
 
-const Join = () => {
+const Join = ({setPage}) => {
+  setPage('Join');
+
   return <div>Join</div>;
 };
 

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import type { Session } from '@supabase/supabase-js';
+import Navigation from '../components/Navigation';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
   `${process.env.VITE_SUPABASE_API_KEY}`
 );
 
-const Root = () => {
+const Root = ({ page }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,8 +44,11 @@ const Root = () => {
 
   return (
     <div className='h-screen'>
-      <button onClick={onClick}>sign out</button>
+      {/* <button onClick={onClick}>sign out</button> */}
       <Outlet context={supabase} />
+      <div className='fixed bottom-0 w-full'>
+        <Navigation page={page} />
+      </div>
     </div>
   );
 };

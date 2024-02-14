@@ -6,7 +6,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
 
-const Login = () => {
+const Login = ({ setPage }) => {
+  setPage('Login');
   const supabase: SupabaseClient = useOutletContext();
 
   const [email, setEmail] = useState('');
@@ -31,7 +32,7 @@ const Login = () => {
 
   return (
     <div className='w-full h-full p-6 m-auto flex justify-center items-center'>
-      <form className='grid gap-6 max-w-[400px]' onSubmit={submitHandler}>
+      <form className='grid gap-6 ' onSubmit={submitHandler}>
         <InputField type='email' required={true} onChange={onEmailChange}>
           <User />
         </InputField>
