@@ -12,13 +12,13 @@ const InputField = ({
 }: InputFieldProps) => {
   return (
     <div
-      className={`bg-transparent border-2 border-secondary md:p-6 p-4 justify-between w-min-[300px] h-[70px] md:h-[80px] flex gap-6 ${
+      className={`bg-transparent border-2 border-secondary md:px-6 px-4 justify-between items-center w-min-[300px] h-[70px] md:h-[80px] flex  ${
         vertical ? 'grid gap-6' : ''
       }}`}
     >
       {children ? (
         <div
-          className={`m-auto justify-center flex ${
+          className={`justify-center flex pr-4 md:pr-6 ${
             vertical ? 'w-full' : 'w-min'
           }`}
         >
@@ -30,7 +30,7 @@ const InputField = ({
         type={type}
         onChange={onChange}
         required={required}
-        className={`bg-transparent md:text-2xl text-xl uppercase m-auto roboto-regular w-min-[200px] ${className}`}
+        className={`bg-transparent p-0 w-full place-self-center uppercase roboto-regular ${className}`}
       />
     </div>
   );
