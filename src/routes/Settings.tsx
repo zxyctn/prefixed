@@ -1,7 +1,6 @@
 import React from 'react';
 
-const Settings = ({ setPage }) => {
-  setPage('Settings');
+const Settings = () => {
   return <div>Settings</div>;
 };
 

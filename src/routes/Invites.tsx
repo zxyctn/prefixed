@@ -1,7 +1,6 @@
 import React from 'react';
 
-const Invites = ({setPage}) => {
-  setPage('Invites');
+const Invites = () => {
 
   return <div>Invites</div>;
 };

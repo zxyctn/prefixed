@@ -1,7 +1,6 @@
 import React from 'react';
 
-const Register = ({ setPage }) => {
-  setPage('Register');
+const Register = () => {
   return <div>Register</div>;
 };
 

@@ -3,9 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-const Home = ({ setPage }) => {
-  setPage('Home');
-
+const Home = () => {
   const supabase: SupabaseClient = useOutletContext();
   const [games, setGames] = useState<any>([]);
 
@@ -36,6 +34,10 @@ const Home = ({ setPage }) => {
         .from('game')
         .select()
         .eq('state', 'not_started');
+
+      // not_started means the game is still open for joining
+      // not_ready means the game is full and ready to start
+      // in_progress means the game is currently being played
 
       const gamesData = await Promise.all(
         data!.map(async (game) => {

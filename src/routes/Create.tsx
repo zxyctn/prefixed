@@ -1,8 +1,6 @@
 import React from 'react';
 
-const Create = ({ setPage }) => {
-  setPage('Create');
-
+const Create = () => {
   return <div>Create</div>;
 };
 

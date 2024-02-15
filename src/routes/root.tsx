@@ -9,34 +9,38 @@ const supabase = createClient(
   `${process.env.VITE_SUPABASE_API_KEY}`
 );
 
-const Root = ({ page }) => {
+const Root = ({ page, setPage }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [session, setSession] = useState<Session | null>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+  // useEffect(() => {
+  //   supabase.auth.getSession().then(({ data: { session } }) => {
+  //     setSession(session);
+  //   });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setSession(session);
 
-      if (!session) {
-        navigate('/login');
-      } else if (
-        location.pathname === '/login' ||
-        location.pathname === '/register'
-      ) {
-        navigate('/');
-      }
-    });
+  //     if (!session) {
+  //       navigate('/login');
+  //     } else if (
+  //       location.pathname === '/login' ||
+  //       location.pathname === '/register'
+  //     ) {
+  //       navigate('/');
+  //     }
+  //   });
 
-    return () => subscription.unsubscribe();
-  }, []);
+  //   return () => subscription.unsubscribe();
+  // }, []);
+
+  // useEffect(() => {
+  //   setPage(location.pathname);
+  // }, [location.pathname]);
 
   const onClick = async () => {
     const { error } = await supabase.auth.signOut();
@@ -46,9 +50,11 @@ const Root = ({ page }) => {
     <div className='h-screen'>
       {/* <button onClick={onClick}>sign out</button> */}
       <Outlet context={supabase} />
-      <div className='fixed bottom-0 w-full'>
-        <Navigation page={page} />
-      </div>
+      {/* {session && ( */}
+        <div className='fixed bottom-0 w-full'>
+          <Navigation page={page} />
+        </div>
+      {/* )} */}
     </div>
   );
 };

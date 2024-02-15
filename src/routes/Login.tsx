@@ -6,8 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
 
-const Login = ({ setPage }) => {
-  setPage('Login');
+const Login = () => {
   const supabase: SupabaseClient = useOutletContext();
 
   const [email, setEmail] = useState('');
