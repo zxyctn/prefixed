@@ -14,6 +14,9 @@ export type InputFieldProps = {
   type?: string;
   required?: boolean;
   onChange?: (e) => void;
+  options?: { value: string; label: string }[];
+  min?: number;
+  max?: number;
 };
 
 export type ConfirmModalProps = {

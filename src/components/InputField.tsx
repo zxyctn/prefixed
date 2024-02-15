@@ -8,7 +8,10 @@ const InputField = ({
   className = '',
   type = 'text',
   required = false,
+  min = 0,
+  max = 0,
   onChange,
+  options = [],
 }: InputFieldProps) => {
   return (
     <div
@@ -17,21 +20,27 @@ const InputField = ({
       }}`}
     >
       {children ? (
-        <div
-          className={`justify-center flex pr-4 md:pr-6 ${
-            vertical ? 'w-full' : 'w-min'
-          }`}
-        >
+        <div className={`justify-center flex ${vertical ? 'w-full' : 'w-min'}`}>
           {children}
         </div>
       ) : null}
 
-      <input
-        type={type}
-        onChange={onChange}
-        required={required}
-        className={`bg-transparent p-0 w-full place-self-center uppercase roboto-regular ${className}`}
-      />
+      {type !== 'select' ? (
+        <input
+          type={type}
+          onChange={onChange}
+          required={required}
+          min={min}
+          max={max}
+          className={`bg-transparent p-0 w-full place-self-center uppercase roboto-regular ${className}`}
+        />
+      ) : (
+        <select className='bg-transparent uppercase flex w-min justify-center items-center'>
+          {options.map((o) => (
+            <option value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      )}
     </div>
   );
 };
