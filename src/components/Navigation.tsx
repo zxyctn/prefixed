@@ -13,19 +13,19 @@ const Navigation = ({ page }) => {
 
   return (
     <div className='flex justify-between p-8 md:px-14 px-10'>
-      <Home onClick={() => navigate('/')} className={isCurrent('Home')} />
-      <LogIn onClick={() => navigate('/join')} className={isCurrent('Join')} />
+      <Home onClick={() => navigate('/')} className={isCurrent('/')} />
+      <LogIn onClick={() => navigate('/join')} className={isCurrent('/join')} />
       <Plus
         onClick={() => navigate('/create')}
-        className={isCurrent('Create')}
+        className={isCurrent('/create')}
       />
       <User
         onClick={() => navigate('/invites')}
-        className={isCurrent('Invites')}
+        className={isCurrent('/invites')}
       />
       <Settings
         onClick={() => navigate('/settings')}
-        className={isCurrent('Settings')}
+        className={isCurrent('/settings')}
       />
     </div>
   );

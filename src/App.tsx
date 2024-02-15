@@ -10,42 +10,42 @@ import Create from './routes/Create';
 import Invites from './routes/Invites';
 import Settings from './routes/Settings';
 
-export default function App() {
-  const [page, setPage] = useState<string>('Home');
+const App = () => {
+  const [page, setPage] = useState<string>('');
 
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <Root page={page} />,
+      element: <Root page={page} setPage={setPage} />,
       errorElement: <div>Error</div>,
       children: [
         {
           path: '',
-          element: <Home setPage={setPage} />,
+          element: <Home />,
         },
         {
           path: 'login',
-          element: <Login setPage={setPage} />,
+          element: <Login />,
         },
         {
           path: 'register',
-          element: <Register setPage={setPage} />,
+          element: <Register />,
         },
         {
           path: 'join',
-          element: <Join setPage={setPage} />,
+          element: <Join />,
         },
         {
           path: 'create',
-          element: <Create setPage={setPage} />,
+          element: <Create />,
         },
         {
           path: 'invites',
-          element: <Invites setPage={setPage} />,
+          element: <Invites />,
         },
         {
           path: 'settings',
-          element: <Settings setPage={setPage} />,
+          element: <Settings />,
         },
       ],
     },
@@ -56,4 +56,6 @@ export default function App() {
       <RouterProvider router={router} />
     </div>
   );
-}
+};
+
+export default App;
