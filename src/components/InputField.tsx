@@ -15,9 +15,9 @@ const InputField = ({
 }: InputFieldProps) => {
   return (
     <div
-      className={`bg-transparent border-2 border-secondary md:px-6 px-4 justify-between items-center w-min-[300px] h-[70px] md:h-[80px] flex  ${
-        vertical ? 'grid gap-6' : ''
-      }}`}
+      className={`bg-transparent border-2 border-secondary md:px-6 px-4 justify-between items-center w-min-[300px] h-[70px] md:h-[80px] ${
+        vertical ? 'grid' : 'flex gap-4'
+      }`}
     >
       {children ? (
         <div className={`justify-center flex ${vertical ? 'w-full' : 'w-min'}`}>
