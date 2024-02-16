@@ -12,7 +12,7 @@ const Navigation = ({ page }) => {
   };
 
   return (
-    <div className='flex justify-between p-8 md:px-14 px-10'>
+    <div className='flex justify-between p-6 md:px-14 px-10'>
       <Home onClick={() => navigate('/')} className={isCurrent('/')} />
       <LogIn onClick={() => navigate('/join')} className={isCurrent('/join')} />
       <Plus
