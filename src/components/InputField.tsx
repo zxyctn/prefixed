@@ -37,7 +37,7 @@ const InputField = ({
       ) : (
         <select className='bg-transparent uppercase flex w-min justify-center items-center'>
           {options.map((o) => (
-            <option value={o.value}>{o.label}</option>
+            <option value={o.value} key={o.value}>{o.label}</option>
           ))}
         </select>
       )}

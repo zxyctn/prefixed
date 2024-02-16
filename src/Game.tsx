@@ -1,8 +1,8 @@
 import React from 'react';
+import { Globe, Hash } from 'react-feather';
 
 import Button from './components/Button';
 import InputField from './components/InputField';
-import { Globe, Hash } from 'react-feather';
 import Modal from './components/Modal';
 import Confirm from './components/Confirm';
 
