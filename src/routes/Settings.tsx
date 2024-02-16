@@ -1,8 +1,7 @@
+import React from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
-import React, { useEffect } from 'react';
 import { LogOut } from 'react-feather';
 import { useOutletContext } from 'react-router-dom';
-import { themeChange } from 'theme-change';
 
 const Settings = () => {
   const supabase: SupabaseClient = useOutletContext();
@@ -10,10 +9,6 @@ const Settings = () => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
   };
-
-  useEffect(() => {
-    themeChange(false);
-  }, []);
 
   return (
     <div className='p-6 flex flex-col gap-4 h-full'>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import Root from './routes/root';
@@ -9,6 +9,7 @@ import Join from './routes/Join';
 import Create from './routes/Create';
 import Invites from './routes/Invites';
 import Settings from './routes/Settings';
+import { themeChange } from 'theme-change';
 
 const App = () => {
   const [page, setPage] = useState<string>('');
@@ -50,6 +51,10 @@ const App = () => {
       ],
     },
   ]);
+
+  useEffect(() => {
+    themeChange(false);
+  }, []);
 
   return <RouterProvider router={router} />;
 };
