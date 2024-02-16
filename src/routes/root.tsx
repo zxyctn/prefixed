@@ -14,7 +14,7 @@ const Root = ({ page, setPage }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -31,7 +31,7 @@ const Root = ({ page, setPage }) => {
   }, []);
 
   useEffect(() => {
-    if (!session) {
+    if (session === null) {
       navigate('/login');
     } else if (
       location.pathname === '/login' ||
