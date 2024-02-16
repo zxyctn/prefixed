@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { themeChange } from 'theme-change';
 
+import Game from './routes/Game';
 import Root from './routes/root';
 import Home from './routes/Home';
 import Login from './routes/Login';
@@ -9,7 +11,6 @@ import Join from './routes/Join';
 import Create from './routes/Create';
 import Invites from './routes/Invites';
 import Settings from './routes/Settings';
-import { themeChange } from 'theme-change';
 
 const App = () => {
   const [page, setPage] = useState<string>('');
@@ -47,6 +48,10 @@ const App = () => {
         {
           path: 'settings',
           element: <Settings />,
+        },
+        {
+          path: 'game/:id',
+          element: <Game />,
         },
       ],
     },

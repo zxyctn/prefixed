@@ -50,7 +50,7 @@ const Root = ({ page, setPage }) => {
       <div className='grow'>
         <Outlet context={supabase} />
       </div>
-      {session && (
+      {session && !location.pathname.includes('game') && (
         <div className='align-bottom w-full'>
           <Navigation page={page} />
         </div>
