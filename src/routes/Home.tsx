@@ -78,7 +78,7 @@ const Home = () => {
 
   // TODO: When clicked on row open up modal for joining the game
   return (
-    <div className='overflow-x-auto'>
+    <div className='overflow-x-auto no-scrollbar'>
       <table className='table table-lg table-pin-cols'>
         <thead>
           <tr>
@@ -94,7 +94,7 @@ const Home = () => {
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className='no-scrollbar'>
           {games.map((game) => (
             <tr className='uppercase text-center' key={game.id}>
               <th className=''>
