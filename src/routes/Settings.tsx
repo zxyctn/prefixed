@@ -14,14 +14,15 @@ const Settings = () => {
     <div className='p-6 flex flex-col gap-4 h-full'>
       <h1 className='uppercase separated-min text-2xl'>Settings</h1>
       <div className='grow align-top'>
-        <div className='flex justify-between items-center w-full'>
-          <p className='uppercase separated-min w-full'>Theme</p>
+        <div className='flex justify-between items-center w-full flex-wrap gap-2'>
+          <p className='uppercase separated-min'>Theme</p>
           <select
-            className='select border-secondary uppercase w-min'
+            className='select border-secondary uppercase'
             data-choose-theme
           >
             <option value='dark'>Dark</option>
             <option value='light'>Light</option>
+            <option value=''>OS Preference</option>
           </select>
         </div>
       </div>
