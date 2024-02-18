@@ -27,6 +27,7 @@ const Game = () => {
           setWord(data[0].prefix);
           setLang(data[0].lang);
           setPlayerPoints(0);
+          turnsHandler();
         }
       });
   }, [id, supabase]);
@@ -51,6 +52,33 @@ const Game = () => {
       setWord(prefix);
     }
   };
+
+  const turnsHandler = async () => {
+    const { data, error } = await supabase
+      .from('game_turns')
+      .select('*')
+      .eq('game_id', id);
+
+    if (error) {
+      console.error(error);
+    } else {
+      setTurns(data.slice(-10));
+    }
+  };
+
+  supabase
+    .channel(`game=${id}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'game_turns',
+        filter: `game_id=eq.${id}`,
+      },
+      turnsHandler
+    )
+    .subscribe();
 
   const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -92,9 +120,12 @@ const Game = () => {
         }
       }
 
-      // TODO: Add 1 point if the word exists in the dictionary
       // TODO: Show modal to start a poll for the word's existence
-    } else if (!/^[a-zA-Z]$/i.test(e.key) && e.key !== 'Backspace') {
+    } else if (
+      ((!/^[a-zA-Z]$/i.test(e.key) && lang === 'en') ||
+        (!/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && lang === 'az')) &&
+      e.key !== 'Backspace'
+    ) {
       e.preventDefault();
     }
   };
@@ -104,7 +135,14 @@ const Game = () => {
       <span className='uppercase separated-min flex justify-center w-full text-lg'>
         {prefix}
       </span>
-      <div className='grow'></div>
+      <div className='grow'>
+        {turns.map((turn) => (
+          <div key={turn.word} className='grid gap-2'>
+            <div>user: {turn.player_id}</div>
+            <div>word: {turn.word}</div>
+          </div>
+        ))}
+      </div>
       <div className='relative bg-neutral flex items-center px-3'>
         <div className='bg-lime-400 w-3 h-3'></div>
         <input
