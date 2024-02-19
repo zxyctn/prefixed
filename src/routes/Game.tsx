@@ -13,6 +13,7 @@ const Game = () => {
   const [playerPoints, setPlayerPoints] = useState<number>(0);
   const [player, setPlayer] = useState<string>('');
   const [turns, setTurns] = useState<any[]>([]);
+  const [avatar, setAvatar] = useState<string>('#000');
 
   useEffect(() => {
     supabase
@@ -37,6 +38,23 @@ const Game = () => {
       const { data, error } = await supabase.auth.getUser();
       if (!error) {
         setPlayer(data.user.id);
+
+        console.log(data.user.id);
+
+        const { data: colorData, error: colorError } = await supabase
+          .from('player_colors')
+          .select('color_id')
+          .eq('player_id', data.user.id)
+          .eq('game_id', id);
+
+        console.log(colorData);
+
+        const { data: avatarData, error: avatarError } = await supabase
+          .from('colors')
+          .select('*')
+          .eq('id', colorData![0].color_id);
+
+        setAvatar(avatarData![0].hex);
       }
     };
     setUser();
@@ -144,7 +162,7 @@ const Game = () => {
         ))}
       </div>
       <div className='relative bg-neutral flex items-center px-3'>
-        <div className='bg-lime-400 w-3 h-3'></div>
+        <div className='w-3 h-3' style={{ background: avatar }}></div>
         <input
           type='text'
           className='p-3 bg-transparent w-10/12 uppercase separated-min'
