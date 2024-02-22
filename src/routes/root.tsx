@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 import { createClient } from '@supabase/supabase-js';
-import type { Session } from '@supabase/supabase-js';
 
 import Navigation from '../components/Navigation';
+import { currentSession, currentUser } from '../stores';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -14,7 +15,8 @@ const Root = ({ page, setPage }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [session, setSession] = useRecoilState(currentSession);
+  const [_, setPlayer] = useRecoilState(currentUser);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -25,6 +27,9 @@ const Root = ({ page, setPage }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user) {
+        setPlayer(session.user);
+      }
     });
 
     return () => subscription.unsubscribe();
