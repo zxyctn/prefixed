@@ -1,4 +1,6 @@
-const getRandomColors = (n: number) => {
+import { SupabaseClient } from '@supabase/supabase-js';
+
+export const getRandomColors = (n: number) => {
   const colors = [
     { name: 'green', hex: '#34eb7d' },
     { name: 'red', hex: '#eb3434' },
@@ -19,4 +21,31 @@ const getRandomColors = (n: number) => {
   }
 
   return result;
+};
+
+export const getGame = async (game_id: string, supabase: SupabaseClient) => {
+  return await supabase.from('game').select('*').eq('id', game_id);
+};
+
+export const getPlayers = (game_id: string, supabase: SupabaseClient) => {
+  return supabase
+    .from('game_players')
+    .select('player_id')
+    .eq('game_id', game_id);
+};
+
+export const getAvatars = (game_id: string, supabase: SupabaseClient) => {
+  return supabase
+    .from('player_colors')
+    .select('player_id, colors (hex)')
+    .eq('game_id', game_id);
+};
+
+export const getTurns = (game_id: string, supabase: SupabaseClient) => {
+  return supabase
+    .from('game_turns')
+    .select('id, player_id, word')
+    .eq('game_id', game_id)
+    .order('created_at', { ascending: false })
+    .limit(10);
 };
