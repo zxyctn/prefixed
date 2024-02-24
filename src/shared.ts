@@ -30,7 +30,7 @@ export const getGame = async (game_id: string, supabase: SupabaseClient) => {
 export const getPlayers = (game_id: string, supabase: SupabaseClient) => {
   return supabase
     .from('game_players')
-    .select('player_id')
+    .select('player_id, order')
     .eq('game_id', game_id);
 };
 

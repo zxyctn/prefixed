@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Send } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useOutletContext, useParams } from 'react-router-dom';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 
 import { currentGame, currentUser, gamePlayers } from '../stores';
 import { getAvatars, getGame, getPlayers, getTurns } from '../shared';
@@ -12,35 +12,21 @@ const Game = () => {
   const supabase: SupabaseClient = useOutletContext();
 
   const [game, setGame] = useRecoilState(currentGame);
-  const [player] = useRecoilState(currentUser);
-  const setPlayers = useSetRecoilState(gamePlayers);
+  const player = useRecoilValue(currentUser);
+  const [players, setPlayers] = useRecoilState(gamePlayers);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
 
   const [word, setWord] = useState<string>('');
   const [playerPoints, setPlayerPoints] = useState<number>(0);
   const [turns, setTurns] = useState<any[]>([]);
+  const [order, setOrder] = useState<number>();
+  const [isTurn, setIsTurn] = useState<boolean>(false);
 
   useEffect(() => {
     if (id) {
       getGame(id, supabase).then(({ data, error }) => {
         setGame(data[0]);
         setWord(data[0].prefix);
-      });
-
-      getPlayers(id, supabase).then(({ data, error }) => {
-        setPlayers(
-          data ? data.map((player) => ({ id: player.player_id })) : []
-        );
-      });
-
-      getAvatars(id, supabase).then(({ data, error }) => {
-        data?.forEach((player) => {
-          avatars[player.player_id] = player.colors.hex;
-        });
-      });
-
-      getTurns(id, supabase).then(({ data, error }) => {
-        setTurns(data?.reverse() || []);
       });
 
       supabase
@@ -67,8 +53,58 @@ const Game = () => {
           }
         )
         .subscribe();
+
+      supabase
+        .channel(`game_order=${id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game',
+            filter: `id=eq.${id}`,
+          },
+          (payload) => {
+            setIsTurn(payload.new.turn === order);
+          }
+        )
+        .subscribe();
     }
   }, [id, supabase]);
+
+  useEffect(() => {
+    if (id !== undefined && game !== null && player !== null) {
+      getPlayers(id, supabase).then(({ data, error }) => {
+        setPlayers(
+          data
+            ? data.map((p) => {
+                if (p.player_id === player!.id) {
+                  setOrder(p.order);
+                  setIsTurn(p.order === game?.turn);
+                }
+                return {
+                  id: p.player_id,
+                };
+              })
+            : []
+        );
+      });
+
+      getTurns(id, supabase).then(({ data, error }) => {
+        setTurns(data?.reverse() || []);
+      });
+    }
+  }, [id, supabase, game, player, setGame]);
+
+  useEffect(() => {
+    if (id && players) {
+      getAvatars(id, supabase).then(({ data, error }) => {
+        data?.forEach((player) => {
+          avatars[player.player_id] = player.colors.hex;
+        });
+      });
+    }
+  }, [id, supabase, players]);
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (
@@ -153,9 +189,19 @@ const Game = () => {
             </div>
           ))}
       </div>
-      <div className='relative bg-neutral flex items-center px-3'>
+      {!isTurn && (
+        <span className='uppercase separated-min bg-primary p-2'>
+          wait for your turn
+        </span>
+      )}
+
+      <div
+        className={`relative bg-neutral flex items-center px-3 ${
+          !isTurn && 'text-gray-500 brightness-50'
+        }`}
+      >
         <div
-          className='w-3 h-3'
+          className='w-3 h-3 '
           style={{
             background: player ? avatars[player.id] : '#fff',
           }}
@@ -166,8 +212,9 @@ const Game = () => {
           value={word}
           onChange={changeHandler}
           onKeyDown={keystrokeHandler}
+          disabled={!isTurn}
         />
-        <Send className='absolute right-3 bottom-3' size={20} />
+        <Send className='absolute right-3 bottom-3 ' size={20} />
       </div>
     </div>
   );
