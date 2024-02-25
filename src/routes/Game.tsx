@@ -18,93 +18,118 @@ const Game = () => {
 
   const [word, setWord] = useState<string>('');
   const [playerPoints, setPlayerPoints] = useState<number>(0);
-  const [turns, setTurns] = useState<any[]>([]);
+  const [turns, setTurns] = useState<
+    {
+      id: any;
+      player_id: any;
+      word: any;
+    }[]
+  >([]);
   const [order, setOrder] = useState<number>();
   const [isTurn, setIsTurn] = useState<boolean>(false);
 
   useEffect(() => {
-    if (id) {
-      getGame(id, supabase).then(({ data, error }) => {
-        setGame(data[0]);
-        setWord(data[0].prefix);
-      });
-
-      supabase
-        .channel(`game=${id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'game_turns',
-            filter: `game_id=eq.${id}`,
-          },
-          (payload) => {
-            setTurns((old) =>
-              [
-                ...old,
-                {
-                  word: payload.new.word,
-                  player_id: payload.new.player_id,
-                  id: payload.new.id,
-                },
-              ].slice(-10)
-            );
-          }
-        )
-        .subscribe();
-
-      supabase
-        .channel(`game_order=${id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'game',
-            filter: `id=eq.${id}`,
-          },
-          (payload) => {
-            setIsTurn(payload.new.turn === order);
-          }
-        )
-        .subscribe();
-    }
-  }, [id, supabase]);
-
-  useEffect(() => {
-    if (id !== undefined && game !== null && player !== null) {
-      getPlayers(id, supabase).then(({ data, error }) => {
-        setPlayers(
-          data
-            ? data.map((p) => {
-                if (p.player_id === player!.id) {
-                  setOrder(p.order);
-                  setIsTurn(p.order === game?.turn);
-                }
-                return {
-                  id: p.player_id,
-                };
-              })
-            : []
+    const init = async () => {
+      if (id && supabase && player) {
+        const { data: gameData, error: gameError } = await getGame(
+          id,
+          supabase
         );
-      });
 
-      getTurns(id, supabase).then(({ data, error }) => {
-        setTurns(data?.reverse() || []);
-      });
-    }
-  }, [id, supabase, game, player, setGame]);
+        if (gameData && gameData.length) {
+          setGame(gameData[0]);
+          setWord(gameData[0].prefix);
+        }
+      }
+    };
+
+    init();
+  }, [id, supabase, player]);
 
   useEffect(() => {
-    if (id && players) {
-      getAvatars(id, supabase).then(({ data, error }) => {
-        data?.forEach((player) => {
-          avatars[player.player_id] = player.colors.hex;
-        });
-      });
-    }
-  }, [id, supabase, players]);
+    const init = async () => {
+      if (id && game && supabase && player) {
+        const { data: playersData, error: playersError } = await getPlayers(
+          id,
+          supabase
+        );
+
+        if (playersData && playersData.length) {
+          setPlayers(
+            playersData
+              ? playersData.map((p) => {
+                  if (p.player_id === player.id) {
+                    setOrder(p.order);
+                    setIsTurn(p.order === game.turn);
+                  }
+                  return {
+                    id: p.player_id,
+                  };
+                })
+              : []
+          );
+
+          const { data: avatarsData, error: avatarsError } = await getAvatars(
+            id,
+            supabase
+          );
+          avatarsData?.forEach((p) => {
+            avatars[p.player_id] = p.colors.hex;
+          });
+        }
+
+        const { data: turnsData, error: turnsError } = await getTurns(
+          id,
+          supabase
+        );
+
+        if (turnsData && turnsData.length) {
+          setTurns(turnsData?.reverse() || []);
+        }
+      }
+    };
+
+    init();
+  }, [game, supabase]);
+
+  useEffect(() => {
+    supabase
+      .channel(`game=${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'game_turns',
+          filter: `game_id=eq.${id}`,
+        },
+        (payload) => {
+          setTurns((old) =>
+            [
+              ...old,
+              {
+                word: payload.new.word,
+                player_id: payload.new.player_id,
+                id: payload.new.id,
+              },
+            ].slice(-10)
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game',
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          setIsTurn(payload.new.turn === order);
+        }
+      )
+      .subscribe();
+  }, [order]);
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (
@@ -176,21 +201,23 @@ const Game = () => {
         {game?.prefix}
       </span>
       <div className='grow flex flex-col gap-5'>
-        {turns &&
-          turns.map((turn) => (
-            <div key={turn.id} className='flex gap-3 items-center'>
-              <div
-                className='w-3 h-3'
-                style={{
-                  background: avatars[turn.player_id] || '#fff',
-                }}
-              ></div>
-              <div className='separated uppercase text-2xl'>{turn.word}</div>
-            </div>
-          ))}
+        {turns.map((turn) => (
+          <div key={turn.id} className='flex gap-3 items-center'>
+            <div
+              className='w-3 h-3'
+              style={{
+                background: avatars[turn.player_id] || '#fff',
+              }}
+            ></div>
+            <div className='separated uppercase text-2xl'>{turn.word}</div>
+          </div>
+        ))}
       </div>
       {!isTurn && (
-        <span className='uppercase separated-min bg-primary p-2'>
+        <span
+          className='uppercase separated-min bg-primary p-2'
+          key={isTurn ? 1 : 0}
+        >
           wait for your turn
         </span>
       )}
