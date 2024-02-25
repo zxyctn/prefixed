@@ -8,7 +8,7 @@ export const currentGame = atom<GameType | null>({
   default: null,
 });
 
-export const gamePlayers = atom<{ id: string }[]>({
+export const gamePlayers = atom<{ id: string, color: string }[]>({
   key: 'gamePlayers',
   default: [],
 });

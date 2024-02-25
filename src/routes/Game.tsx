@@ -49,42 +49,41 @@ const Game = () => {
   useEffect(() => {
     const init = async () => {
       if (id && game && supabase && player) {
-        const { data: playersData, error: playersError } = await getPlayers(
-          id,
-          supabase
-        );
-
-        if (playersData && playersData.length) {
-          setPlayers(
-            playersData
-              ? playersData.map((p) => {
-                  if (p.player_id === player.id) {
-                    setOrder(p.order);
-                    setIsTurn(p.order === game.turn);
-                  }
-                  return {
-                    id: p.player_id,
-                  };
-                })
-              : []
-          );
-
-          const { data: avatarsData, error: avatarsError } = await getAvatars(
-            id,
-            supabase
-          );
-          avatarsData?.forEach((p) => {
-            avatars[p.player_id] = p.colors.hex;
+        const { data: playerColorsData, error: playerColorsError } =
+          await supabase.rpc('get_players', {
+            param_game_id: id,
           });
+
+        if (playerColorsData && playerColorsData.length) {
+          setPlayers(
+            playerColorsData.map((p) => {
+              if (p.player_id === player.id) {
+                setOrder(p.player_order);
+                setIsTurn(p.player_order === game.turn);
+              }
+              return {
+                id: p.player_id,
+              };
+            })
+          );
+
+          setAvatars(
+            playerColorsData.reduce((acc, curr) => {
+              acc[curr.player_id] = curr.color;
+              return acc;
+            }, {} as { [key: string]: string })
+          );
         }
 
-        const { data: turnsData, error: turnsError } = await getTurns(
-          id,
-          supabase
-        );
+        let { data: turnsData, error: turnsError } = await supabase
+          .rpc('get_game_turns', {
+            param_game_id: id,
+          })
+          .order('id', { ascending: false })
+          .limit(10);
 
         if (turnsData && turnsData.length) {
-          setTurns(turnsData?.reverse() || []);
+          setTurns(turnsData.reverse());
         }
       }
     };
