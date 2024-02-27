@@ -15,22 +15,19 @@ const Game = () => {
   const player = useRecoilValue(currentUser);
   const [players, setPlayers] = useRecoilState(gamePlayers);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
-  const [channel, setChannel] = useState<RealtimeChannel>();
-  const [isTyping, setIsTyping] = useState<{
-    value: boolean;
-    player_id: string;
-  }>({ value: false, player_id: '' });
 
   const [word, setWord] = useState<string>('');
   const [playerPoints, setPlayerPoints] = useState<number>(0);
   const [turns, setTurns] = useState<
     {
-      id: any;
-      player_id: any;
-      word: any;
+      id: number;
+      player_id: string;
+      word: string;
+      repeated: boolean;
+      existent: boolean;
     }[]
   >([]);
-  const [order, setOrder] = useState<number>();
+  const [turn, setTurn] = useState<number>();
   const [isTurn, setIsTurn] = useState<boolean>(false);
 
   useEffect(() => {
@@ -63,8 +60,8 @@ const Game = () => {
           setPlayers(
             playerColorsData.map((p) => {
               if (p.player_id === player.id) {
-                setOrder(p.player_order);
-                setIsTurn(p.player_order === game.turn);
+                setTurn(p.player_turn);
+                setIsTurn(p.player_turn === game.turn);
               }
               return {
                 id: p.player_id,
@@ -98,10 +95,8 @@ const Game = () => {
 
   useEffect(() => {
     if (supabase) {
-      const supabaseChannel = supabase.channel(`game=${id}`);
-      setChannel(supabaseChannel);
-
-      supabaseChannel
+      supabase
+        .channel(`game=${id}`)
         .on(
           'postgres_changes',
           {
@@ -115,6 +110,8 @@ const Game = () => {
               [
                 ...old,
                 {
+                  repeated: payload.new.repeated,
+                  existent: payload.new.existent,
                   word: payload.new.word,
                   player_id: payload.new.player_id,
                   id: payload.new.id,
@@ -132,18 +129,12 @@ const Game = () => {
             filter: `id=eq.${id}`,
           },
           (payload) => {
-            setIsTurn(payload.new.turn === order);
+            setIsTurn(payload.new.turn === turn);
           }
         )
-        .on('broadcast', { event: 'typing' }, ({ payload }) => {
-          setIsTyping({ value: true, player_id: payload.player_id });
-          setTimeout(() => {
-            setIsTyping({ value: false, player_id: '' });
-          }, 1000);
-        })
         .subscribe();
     }
-  }, [order, supabase]);
+  }, [turn, supabase]);
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (
@@ -159,6 +150,17 @@ const Game = () => {
 
   const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      const { data: checkWordData, error: checkWordError } = await supabase.rpc(
+        'check_word',
+        {
+          param_game_id: id,
+          param_player_id: player?.id,
+          param_word: word,
+        }
+      );
+
+      const { repeated, existence } = checkWordData;
+
       supabase
         .from(game!.lang.toLowerCase())
         .select('*')
@@ -179,7 +181,7 @@ const Game = () => {
                   pre_3: word.substring(0, 3),
                   pre_4: word.substring(0, 4),
                   lang: game!.lang,
-                  game: id,
+                  game_id: id,
                 })
                 .then(() => {
                   supabase
@@ -188,8 +190,8 @@ const Game = () => {
                       player_id: player?.id,
                       word: word,
                       game_id: id,
-                      existent: true,
-                      repeated: false,
+                      existent: existence,
+                      repeated: repeated,
                       accepted: true,
                     })
                     .then(({ data, error }) => {
@@ -205,15 +207,7 @@ const Game = () => {
       (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && game!.lang === 'az') ||
       e.key === 'Backspace'
     ) {
-      if (channel && player) {
-        channel.send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: {
-            player_id: player.id,
-          },
-        });
-      }
+      // Do nothing
     } else {
       e.preventDefault();
     }
@@ -233,20 +227,14 @@ const Game = () => {
                 background: avatars[turn.player_id] || '#fff',
               }}
             ></div>
-            <div className='separated uppercase text-2xl'>{turn.word}</div>
+
+            {turn.repeated ? (
+              <div className='uppercase separated text-2xl text-neutral roboto-bold'>repeated</div>
+            ) : (
+              <div className='separated uppercase text-2xl'>{turn.word}</div>
+            )}
           </div>
         ))}
-        {isTyping.value && (
-          <div className='flex gap-3 items-center animate-pulse delay-300'>
-            <div
-              className='w-3 h-3'
-              style={{
-                background: avatars[isTyping.player_id],
-              }}
-            ></div>
-            <span className='loading loading-dots loading-lg'></span>
-          </div>
-        )}
       </div>
       {!isTurn && (
         <span
