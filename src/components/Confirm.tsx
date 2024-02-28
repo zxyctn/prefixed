@@ -9,6 +9,14 @@ const Confirm = ({
   cancelButtonText,
   onConfirm = () => {},
   onCancel = () => {},
+}: {
+  id: string;
+  children?;
+  title: string;
+  confirmButtonText: string;
+  cancelButtonText: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }) => {
   const dialog = useRef(null);
 
@@ -37,11 +45,11 @@ const Confirm = ({
   return (
     <dialog
       id={id}
-      className='modal modal-bottom sm:modal-middle'
+      className='modal sm:modal-middle'
       data-keyboard='false'
       ref={dialog}
     >
-      <div className='modal-box relative'>
+      <div className='modal-box relative '>
         <h1 className='bg-neutral absolute top-0 left-0 separated roboto-regular uppercase text-center p-3 w-full'>
           {title}
         </h1>

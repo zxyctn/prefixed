@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Send } from 'react-feather';
-import { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
 import { currentGame, currentUser, gamePlayers } from '../stores';
 import { getGame } from '../shared';
+import Confirm from '../components/Confirm';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id;
@@ -15,7 +16,7 @@ const Game = () => {
   const player = useRecoilValue(currentUser);
   const [players, setPlayers] = useRecoilState(gamePlayers);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
-
+  const [notExists, setNotExists] = useState<{ id: number; word: string }>();
   const [word, setWord] = useState<string>('');
   const [playerPoints, setPlayerPoints] = useState<number>(0);
   const [turns, setTurns] = useState<
@@ -25,6 +26,7 @@ const Game = () => {
       word: string;
       repeated: boolean;
       existent: boolean;
+      accepted: boolean;
     }[]
   >([]);
   const [turn, setTurn] = useState<number>();
@@ -110,6 +112,7 @@ const Game = () => {
               [
                 ...old,
                 {
+                  accepted: payload.new.accepted,
                   repeated: payload.new.repeated,
                   existent: payload.new.existent,
                   word: payload.new.word,
@@ -132,9 +135,163 @@ const Game = () => {
             setIsTurn(payload.new.turn === turn);
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'game_votes',
+            filter: `game_id=eq.${id}`,
+          },
+          (payload) => {
+            if (payload.new.player_id !== player?.id) {
+              setNotExists({ word: payload.new.content, id: payload.new.id });
+              showModal('notExistsPoll');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game_votes',
+            filter: `player_id=eq.${player?.id}`,
+          },
+          async (payload) => {
+            if (payload.new.result === true) {
+              await supabase
+                .from('game_players')
+                .update({ points: playerPoints + 1 })
+                .eq('player_id', player?.id);
+
+              setPlayerPoints(playerPoints + 1);
+
+              await supabase.from('game_dict').insert({
+                word: payload.new.content,
+                pre_1: payload.new.content.charAt(0),
+                pre_2: payload.new.content.substring(0, 2),
+                pre_3: payload.new.content.substring(0, 3),
+                pre_4: payload.new.content.substring(0, 4),
+                lang: game!.lang,
+                game_id: id,
+              });
+
+              await supabase.from('nonexistent_dict').insert({
+                word: payload.new.content,
+                pre_1: payload.new.content.charAt(0),
+                pre_2: payload.new.content.substring(0, 2),
+                pre_3: payload.new.content.substring(0, 3),
+                pre_4: payload.new.content.substring(0, 4),
+                lang: game!.lang,
+              });
+
+              await supabase.from('game_turns').insert({
+                player_id: player?.id,
+                word: payload.new.content,
+                game_id: id,
+                existent: false,
+                repeated: false,
+                accepted: true,
+              });
+            } else if (payload.new.result === false) {
+              await supabase.from('game_turns').insert({
+                player_id: player?.id,
+                word: payload.new.content,
+                game_id: id,
+                existent: false,
+                repeated: false,
+                accepted: false,
+              });
+            }
+          }
+        )
         .subscribe();
     }
   }, [turn, supabase]);
+
+  const showModal = (modalId) => {
+    (document.getElementById(modalId) as HTMLDialogElement).showModal();
+  };
+
+  const hideModal = (modalId) => {
+    (document.getElementById(modalId) as HTMLDialogElement).close();
+  };
+
+  const onStartPoll = async () => {
+    await supabase.from('game_votes').insert([
+      {
+        game_id: id,
+        content: word,
+        vote_type: 'NOT_EXISTS',
+        result: null,
+        player_id: player?.id,
+        yes: 1,
+      },
+    ]);
+  };
+
+  const onCancelStartPoll = async () => {
+    hideModal('startPoll');
+  };
+
+  const onConfirmPoll = async () => {
+    let { data, error } = await supabase.rpc('increment_vote', {
+      vote_id: notExists?.id,
+      vote_type: 'yes',
+    });
+
+    if (error) console.error(error);
+    else console.log(data);
+
+    hideModal('notExistsPoll');
+  };
+
+  const onCancelPoll = async () => {
+    let { data, error } = await supabase.rpc('increment_vote', {
+      vote_id: notExists?.id,
+      vote_type: 'no',
+    });
+
+    if (error) console.error(error);
+    else console.log(data);
+
+    hideModal('notExistsPoll');
+  };
+
+  const insertAcceptedTurn = async (existence, repeated, accepted) => {
+    supabase
+      .from('game_players')
+      .update({ points: playerPoints + 1 })
+      .eq('player_id', player?.id)
+      .then(() => {
+        setPlayerPoints(playerPoints + 1);
+        supabase
+          .from('game_dict')
+          .insert({
+            word: word,
+            pre_1: word.charAt(0),
+            pre_2: word.substring(0, 2),
+            pre_3: word.substring(0, 3),
+            pre_4: word.substring(0, 4),
+            lang: game!.lang,
+            game_id: id,
+          })
+          .then(() => {
+            supabase
+              .from('game_turns')
+              .insert({
+                player_id: player?.id,
+                word: word,
+                game_id: id,
+                existent: existence,
+                repeated: repeated,
+                accepted: accepted,
+              })
+              .then(({ data, error }) => {});
+          });
+      });
+  };
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (
@@ -161,47 +318,21 @@ const Game = () => {
 
       const { repeated, existence } = checkWordData;
 
-      supabase
-        .from(game!.lang.toLowerCase())
-        .select('*')
-        .ilike('word', word)
-        .then(({ data, error }) => {
-          supabase
-            .from('game_players')
-            .update({ points: playerPoints + 1 })
-            .eq('player_id', player?.id)
-            .then(() => {
-              setPlayerPoints(playerPoints + 1);
-              supabase
-                .from('game_dict')
-                .insert({
-                  word: word,
-                  pre_1: word.charAt(0),
-                  pre_2: word.substring(0, 2),
-                  pre_3: word.substring(0, 3),
-                  pre_4: word.substring(0, 4),
-                  lang: game!.lang,
-                  game_id: id,
-                })
-                .then(() => {
-                  supabase
-                    .from('game_turns')
-                    .insert({
-                      player_id: player?.id,
-                      word: word,
-                      game_id: id,
-                      existent: existence,
-                      repeated: repeated,
-                      accepted: true,
-                    })
-                    .then(({ data, error }) => {
-                      setWord(game?.prefix || '');
-                    });
-                });
-            });
+      if (repeated) {
+        await supabase.from('game_turns').insert({
+          player_id: player?.id,
+          word: word,
+          game_id: id,
+          existent: existence,
+          repeated: repeated,
+          accepted: true,
         });
-
-      // TODO: Show modal to start a poll for the word's existence
+      } else if (!existence) {
+        showModal('startPoll');
+      } else {
+        insertAcceptedTurn(existence, repeated, true);
+      }
+      // setWord(game?.prefix || '');
     } else if (
       (/^[a-zA-Z]$/i.test(e.key) && game!.lang === 'en') ||
       (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && game!.lang === 'az') ||
@@ -229,7 +360,13 @@ const Game = () => {
             ></div>
 
             {turn.repeated ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold'>repeated</div>
+              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+                repeated
+              </div>
+            ) : !turn.existent && !turn.accepted ? (
+              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+                NONEXISTENT
+              </div>
             ) : (
               <div className='separated uppercase text-2xl'>{turn.word}</div>
             )}
@@ -266,6 +403,32 @@ const Game = () => {
         />
         <Send className='absolute right-3 bottom-3 ' size={20} />
       </div>
+
+      <Confirm
+        id='startPoll'
+        title="Doesn't exist"
+        confirmButtonText='Start poll'
+        cancelButtonText='Cancel'
+        onConfirm={onStartPoll}
+        onCancel={onCancelStartPoll}
+      >
+        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+          {word}
+        </h1>
+      </Confirm>
+
+      <Confirm
+        id='notExistsPoll'
+        title='Exists?'
+        confirmButtonText='Yes'
+        cancelButtonText='No'
+        onConfirm={onConfirmPoll}
+        onCancel={onCancelPoll}
+      >
+        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+          {notExists?.word}
+        </h1>
+      </Confirm>
     </div>
   );
 };
