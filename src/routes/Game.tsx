@@ -30,7 +30,10 @@ const Game = () => {
     }[]
   >([]);
   const [turn, setTurn] = useState<number>();
-  const [isTurn, setIsTurn] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<{ value: boolean; message: string }>(
+    { value: false, message: '' }
+  );
+  const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
 
   useEffect(() => {
     const init = async () => {
@@ -63,7 +66,11 @@ const Game = () => {
             playerColorsData.map((p) => {
               if (p.player_id === player.id) {
                 setTurn(p.player_turn);
-                setIsTurn(p.player_turn === game.turn);
+                setDisabled({
+                  value: p.player_turn !== game.turn,
+                  message:
+                    p.player_turn !== game.turn ? 'Wait for your turn' : '',
+                });
               }
               return {
                 id: p.player_id,
@@ -132,7 +139,10 @@ const Game = () => {
             filter: `id=eq.${id}`,
           },
           (payload) => {
-            setIsTurn(payload.new.turn === turn);
+            setDisabled({
+              value: payload.new.turn !== turn,
+              message: payload.new.turn !== turn ? 'Wait for your turn' : '',
+            });
           }
         )
         .on(
@@ -146,6 +156,7 @@ const Game = () => {
           (payload) => {
             if (payload.new.player_id !== player?.id) {
               setNotExists({ word: payload.new.content, id: payload.new.id });
+              setTimer({ duration: 60, startedAt: new Date() });
               showModal('notExistsPoll');
             }
           }
@@ -195,6 +206,7 @@ const Game = () => {
                 accepted: true,
               });
             } else if (payload.new.result === false) {
+              console.log('xmm');
               await supabase.from('game_turns').insert({
                 player_id: player?.id,
                 word: payload.new.content,
@@ -229,6 +241,8 @@ const Game = () => {
         yes: 1,
       },
     ]);
+
+    setDisabled({ value: true, message: 'Poll in progress' });
   };
 
   const onCancelStartPoll = async () => {
@@ -248,15 +262,18 @@ const Game = () => {
   };
 
   const onCancelPoll = async () => {
-    let { data, error } = await supabase.rpc('increment_vote', {
-      vote_id: notExists?.id,
-      vote_type: 'no',
-    });
+    if (notExists) {
+      let { data, error } = await supabase.rpc('increment_vote', {
+        vote_id: notExists?.id,
+        vote_type: 'no',
+      });
 
-    if (error) console.error(error);
-    else console.log(data);
+      if (error) console.error(error);
+      else console.log(data);
 
-    hideModal('notExistsPoll');
+      hideModal('notExistsPoll');
+      setNotExists(undefined);
+    }
   };
 
   const insertAcceptedTurn = async (existence, repeated, accepted) => {
@@ -373,18 +390,18 @@ const Game = () => {
           </div>
         ))}
       </div>
-      {!isTurn && (
+      {disabled.value && (
         <span
           className='uppercase separated-min bg-primary p-2'
-          key={isTurn ? 1 : 0}
+          key={disabled.value ? 1 : 0}
         >
-          wait for your turn
+          {disabled.message}
         </span>
       )}
 
       <div
         className={`relative bg-neutral flex items-center px-3 ${
-          !isTurn && 'text-gray-500 brightness-50'
+          disabled.value && 'text-gray-500 brightness-50'
         }`}
       >
         <div
@@ -399,7 +416,7 @@ const Game = () => {
           value={word}
           onChange={changeHandler}
           onKeyDown={keystrokeHandler}
-          disabled={!isTurn}
+          disabled={disabled.value}
         />
         <Send className='absolute right-3 bottom-3 ' size={20} />
       </div>
@@ -424,6 +441,8 @@ const Game = () => {
         cancelButtonText='No'
         onConfirm={onConfirmPoll}
         onCancel={onCancelPoll}
+        onTimerFinish={() => hideModal('notExistsPoll')}
+        duration={timer}
       >
         <h1 className='separated roboto-bold uppercase text-center text-2xl'>
           {notExists?.word}
