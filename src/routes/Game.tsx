@@ -73,13 +73,6 @@ const Game = () => {
             setPlayers(
               playerColorsData.map((p) => {
                 if (p.player_id === player?.id) {
-                  setTurn({
-                    value: p.player_turn || 0,
-                    startedAt: null,
-                    endsAt: null,
-                    ended: false,
-                  });
-
                   if (p.player_turn === gameData[0].turn) {
                     supabase
                       .from('game_players')
@@ -111,7 +104,7 @@ const Game = () => {
                                   accepted: false,
                                 })
                                 .then(() => {
-                                  setWord(game?.prefix || '');
+                                  setWord(gameData[0].prefix || '');
                                   clearTimeout(expirationTimeout?.timeout);
                                   clearInterval(expirationInterval);
                                   setProgress(0);
@@ -138,6 +131,13 @@ const Game = () => {
                         }
                       });
                   }
+
+                  setTurn({
+                    value: p.player_turn || 0,
+                    startedAt: null,
+                    endsAt: null,
+                    ended: false,
+                  });
                   setTurnDuration({
                     duration: gameData[0].turn_duration || 60,
                   });
@@ -181,110 +181,6 @@ const Game = () => {
 
     return () => {};
   }, [id, supabase, player]);
-
-  // useEffect(() => {
-  //   const init = async () => {
-  //     if (id && game && supabase && player) {
-  //       const { data: playerColorsData, error: playerColorsError } =
-  //         await supabase.rpc('get_players', {
-  //           param_game_id: id,
-  //         });
-
-  //       if (playerColorsData && playerColorsData.length) {
-  //         setPlayers(
-  //           playerColorsData.map((p) => {
-  //             if (p.player_id === player.id) {
-  //               if (p.player_turn === game.turn) {
-  //                 supabase
-  //                   .from('game_players')
-  //                   .select('timer_started_at, timer_will_end_at')
-  //                   .eq('player_id', player?.id)
-  //                   .then(({ data, error }) => {
-  //                     if (data) {
-  //                       setTurn((old) => ({
-  //                         value: old?.value || 0,
-  //                         startedAt: new Date(data[0].timer_started_at) || null,
-  //                         endsAt: new Date(data[0].timer_will_end_at) || null,
-  //                         ended: false,
-  //                       }));
-
-  //                       const timerEnd = new Date(data[0].timer_will_end_at);
-  //                       const now = new Date();
-  //                       const delay = timerEnd.getTime() - now.getTime();
-
-  //                       if (delay > 0) {
-  //                         const timeout = setTimeout(async () => {
-  //                           supabase
-  //                             .from('game_turns')
-  //                             .insert({
-  //                               player_id: player?.id,
-  //                               word: '',
-  //                               game_id: id,
-  //                               existent: false,
-  //                               repeated: false,
-  //                               accepted: false,
-  //                             })
-  //                             .then(() => {
-  //                               setTurn((old) => {
-  //                                 return {
-  //                                   value: old?.value || 0,
-  //                                   startedAt: null,
-  //                                   endsAt: null,
-  //                                   ended: true,
-  //                                 };
-  //                               });
-  //                             });
-  //                         }, delay);
-
-  //                         return () => clearTimeout(timeout);
-  //                       }
-  //                     }
-  //                   });
-  //               }
-  //               setTurnDuration({
-  //                 duration: game.turn_duration || 60,
-  //               });
-  //               setDisabled({
-  //                 value: p.player_turn !== game.turn,
-  //                 message:
-  //                   p.player_turn !== game.turn ? 'Wait for your turn' : '',
-  //               });
-  //             }
-  //             return {
-  //               id: p.player_id,
-  //             };
-  //           })
-  //         );
-
-  //         setAvatars(
-  //           playerColorsData.reduce((acc, curr) => {
-  //             acc[curr.player_id] = curr.color;
-  //             return acc;
-  //           }, {} as { [key: string]: string })
-  //         );
-  //       }
-
-  //       let { data: turnsData, error: turnsError } = await supabase
-  //         .rpc('get_game_turns', {
-  //           param_game_id: id,
-  //         })
-  //         .order('id', { ascending: false })
-  //         .limit(10);
-
-  //       if (turnsData && turnsData.length) {
-  //         setTurns(turnsData.reverse());
-  //       }
-  //     }
-  //   };
-
-  //   init();
-  // }, [id, game, player, supabase]);
-
-  // useEffect(() => {
-  //   if (game && player && id) {
-
-  //   return () => {};
-  // }, [id, player, game]);
 
   useEffect(() => {
     if (turn?.startedAt && turn.endsAt) {
@@ -355,56 +251,6 @@ const Game = () => {
           },
           async (payload) => {
             console.log('game updated', payload);
-            if (payload.new.turn === turn?.value) {
-              supabase
-                .from('game_players')
-                .select('timer_started_at, timer_will_end_at')
-                .eq('player_id', player?.id)
-                .then(({ data, error }) => {
-                  if (data) {
-                    setTurn((old) => ({
-                      value: old?.value || 0,
-                      startedAt: new Date(data[0].timer_started_at) || null,
-                      endsAt: new Date(data[0].timer_will_end_at) || null,
-                      ended: false,
-                    }));
-
-                    const timerEnd = new Date(data[0].timer_will_end_at);
-                    const now = new Date();
-                    const delay = timerEnd.getTime() - now.getTime();
-
-                    const timeout = setTimeout(
-                      async () => {
-                        await supabase.from('game_turns').insert({
-                          player_id: player?.id,
-                          word: '',
-                          game_id: id,
-                          existent: false,
-                          repeated: false,
-                          accepted: false,
-                        });
-                        setWord(game?.prefix || '');
-                        clearTimeout(expirationTimeout?.timeout);
-                        clearInterval(expirationInterval);
-                        setProgress(0);
-                        setExpirationInterval(null);
-                        setExpirationTimeout(null);
-                        setTurn((old) => {
-                          return {
-                            value: old?.value || 0,
-                            startedAt: null,
-                            endsAt: null,
-                            ended: true,
-                          };
-                        });
-                      },
-                      delay > 0 ? delay : 0
-                    );
-
-                    return () => clearTimeout(timeout);
-                  }
-                });
-            }
             setDisabled({
               value: payload.new.turn !== turn?.value,
               message:
@@ -514,6 +360,65 @@ const Game = () => {
                 };
               });
             }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game_players',
+            filter: `player_id=eq.${player?.id}`,
+          },
+          (payload) => {
+            console.log(payload);
+            setTurn((old) => ({
+              value: old?.value || 0,
+              startedAt: new Date(payload.new.timer_started_at) || null,
+              endsAt: new Date(payload.new.timer_will_end_at) || null,
+              ended: false,
+            }));
+
+            const timerEnd = new Date(payload.new.timer_will_end_at);
+            const now = new Date();
+            const delay = timerEnd.getTime() - now.getTime();
+            const timeout = setTimeout(
+              async () => {
+                supabase
+                  .from('game_turns')
+                  .insert({
+                    player_id: player?.id,
+                    word: '',
+                    game_id: id,
+                    existent: false,
+                    repeated: false,
+                    accepted: false,
+                  })
+                  .then(() => {
+                    setWord(game?.prefix || '');
+                    clearTimeout(expirationTimeout?.timeout);
+                    clearInterval(expirationInterval);
+                    setProgress(0);
+                    setExpirationInterval(null);
+                    setExpirationTimeout(null);
+                    setTurn((old) => {
+                      return {
+                        value: old?.value || 0,
+                        startedAt: null,
+                        endsAt: null,
+                        ended: true,
+                      };
+                    });
+                  });
+              },
+              delay > 0 ? delay : 0
+            );
+
+            setExpirationTimeout({
+              timeout: timeout,
+            });
+
+            return () => clearTimeout(timeout);
           }
         )
         .subscribe((status, err) => {
