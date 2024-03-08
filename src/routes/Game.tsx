@@ -111,13 +111,18 @@ const Game = () => {
                                   accepted: false,
                                 })
                                 .then(() => {
+                                  setWord(game?.prefix || '');
+                                  clearTimeout(expirationTimeout?.timeout);
+                                  clearInterval(expirationInterval);
+                                  setProgress(0);
+                                  setExpirationInterval(null);
+                                  setExpirationTimeout(null);
                                   setTurn((old) => {
                                     return {
                                       value: old?.value || 0,
                                       startedAt: null,
                                       endsAt: null,
                                       ended: true,
-                                      set: true,
                                     };
                                   });
                                 });
@@ -378,16 +383,19 @@ const Game = () => {
                           repeated: false,
                           accepted: false,
                         });
+                        setWord(game?.prefix || '');
+                        clearTimeout(expirationTimeout?.timeout);
+                        clearInterval(expirationInterval);
+                        setProgress(0);
+                        setExpirationInterval(null);
+                        setExpirationTimeout(null);
                         setTurn((old) => {
-                          if (old) {
-                            return {
-                              ...old,
-                              startedAt: null,
-                              endsAt: null,
-                              ended: false,
-                            };
-                          }
-                          return old;
+                          return {
+                            value: old?.value || 0,
+                            startedAt: null,
+                            endsAt: null,
+                            ended: true,
+                          };
                         });
                       },
                       delay > 0 ? delay : 0
@@ -471,6 +479,7 @@ const Game = () => {
               setWord(game?.prefix || '');
               clearTimeout(expirationTimeout?.timeout);
               clearInterval(expirationInterval);
+              setProgress(0);
               setExpirationInterval(null);
               setExpirationTimeout(null);
               setTurn((old) => {
@@ -489,6 +498,20 @@ const Game = () => {
                 existent: false,
                 repeated: false,
                 accepted: false,
+              });
+              setWord(game?.prefix || '');
+              clearTimeout(expirationTimeout?.timeout);
+              clearInterval(expirationInterval);
+              setProgress(0);
+              setExpirationInterval(null);
+              setExpirationTimeout(null);
+              setTurn((old) => {
+                return {
+                  value: old?.value || 0,
+                  startedAt: null,
+                  endsAt: null,
+                  ended: true,
+                };
               });
             }
           }
@@ -589,6 +612,7 @@ const Game = () => {
                 setWord(game?.prefix || '');
                 clearTimeout(expirationTimeout?.timeout);
                 clearInterval(expirationInterval);
+                setProgress(0);
                 setExpirationInterval(null);
                 setExpirationTimeout(null);
                 setTurn((old) => {
@@ -641,6 +665,7 @@ const Game = () => {
         setWord(game?.prefix || '');
         clearTimeout(expirationTimeout?.timeout);
         clearInterval(expirationInterval);
+        setProgress(0);
         setExpirationInterval(null);
         setExpirationTimeout(null);
         setTurn((old) => {
