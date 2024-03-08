@@ -9,11 +9,11 @@ import { getGame } from '../shared';
 import Confirm from '../components/Confirm';
 
 const Game = () => {
-  const id = useParams<{ id: string }>().id;
-  const supabase: SupabaseClient = useOutletContext();
+  const id = useParams<{ id: string }>().id || null;
+  const supabase: SupabaseClient = useOutletContext() || null;
 
-  const [game, setGame] = useRecoilState(currentGame);
-  const player = useRecoilValue(currentUser);
+  const [game, setGame] = useState<any | null>(null);
+  const player = useRecoilValue(currentUser) || null;
   const [players, setPlayers] = useRecoilState(gamePlayers);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
   const [notExists, setNotExists] = useState<{ id: number; word: string }>();
@@ -29,11 +29,25 @@ const Game = () => {
       accepted: boolean;
     }[]
   >([]);
-  const [turn, setTurn] = useState<number>();
+  const [turn, setTurn] = useState<{
+    startedAt: Date | null;
+    endsAt: Date | null;
+    value: number;
+    ended: boolean;
+  } | null>(null);
+  const [turnSet, setTurnSet] = useState<boolean | null>(null);
   const [disabled, setDisabled] = useState<{ value: boolean; message: string }>(
     { value: false, message: '' }
   );
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
+  const [turnDuration, setTurnDuration] = useState<{
+    duration: number;
+  } | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [expirationTimeout, setExpirationTimeout] = useState<any | null>(null);
+  const [expirationInterval, setExpirationInterval] = useState<any | null>(
+    null
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -46,64 +60,258 @@ const Game = () => {
         if (gameData && gameData.length) {
           setGame(gameData[0]);
           setWord(gameData[0].prefix);
-        }
-      }
-    };
-
-    init();
-  }, [id, supabase, player]);
-
-  useEffect(() => {
-    const init = async () => {
-      if (id && game && supabase && player) {
-        const { data: playerColorsData, error: playerColorsError } =
-          await supabase.rpc('get_players', {
-            param_game_id: id,
+          setTurnDuration({
+            duration: gameData[0].turn_duration,
           });
 
-        if (playerColorsData && playerColorsData.length) {
-          setPlayers(
-            playerColorsData.map((p) => {
-              if (p.player_id === player.id) {
-                setTurn(p.player_turn);
-                setDisabled({
-                  value: p.player_turn !== game.turn,
-                  message:
-                    p.player_turn !== game.turn ? 'Wait for your turn' : '',
-                });
-              }
-              return {
-                id: p.player_id,
-              };
+          const { data: playerColorsData, error: playerColorsError } =
+            await supabase.rpc('get_players', {
+              param_game_id: id,
+            });
+
+          if (playerColorsData && playerColorsData.length) {
+            setPlayers(
+              playerColorsData.map((p) => {
+                if (p.player_id === player?.id) {
+                  setTurn({
+                    value: p.player_turn || 0,
+                    startedAt: null,
+                    endsAt: null,
+                    ended: false,
+                  });
+
+                  if (p.player_turn === gameData[0].turn) {
+                    supabase
+                      .from('game_players')
+                      .select('timer_started_at, timer_will_end_at')
+                      .eq('player_id', player?.id)
+                      .then(({ data, error }) => {
+                        if (data) {
+                          setTurn({
+                            value: p.player_turn || 0,
+                            startedAt:
+                              new Date(data[0].timer_started_at) || null,
+                            endsAt: new Date(data[0].timer_will_end_at) || null,
+                            ended: false,
+                          });
+
+                          const timerEnd = new Date(data[0].timer_will_end_at);
+                          const now = new Date();
+                          const delay = timerEnd.getTime() - now.getTime();
+                          const timeout = setTimeout(
+                            async () => {
+                              supabase
+                                .from('game_turns')
+                                .insert({
+                                  player_id: player?.id,
+                                  word: '',
+                                  game_id: id,
+                                  existent: false,
+                                  repeated: false,
+                                  accepted: false,
+                                })
+                                .then(() => {
+                                  setTurn((old) => {
+                                    return {
+                                      value: old?.value || 0,
+                                      startedAt: null,
+                                      endsAt: null,
+                                      ended: true,
+                                      set: true,
+                                    };
+                                  });
+                                });
+                            },
+                            delay > 0 ? delay : 0
+                          );
+
+                          setExpirationTimeout({
+                            timeout: timeout,
+                          });
+
+                          return () => clearTimeout(timeout);
+                        }
+                      });
+                  }
+                  setTurnDuration({
+                    duration: gameData[0].turn_duration || 60,
+                  });
+                  setDisabled({
+                    value: p.player_turn !== gameData[0].turn,
+                    message:
+                      p.player_turn !== gameData[0].turn
+                        ? 'Wait for your turn'
+                        : '',
+                  });
+                }
+                return {
+                  id: p.player_id,
+                };
+              })
+            );
+
+            setAvatars(
+              playerColorsData.reduce((acc, curr) => {
+                acc[curr.player_id] = curr.color;
+                return acc;
+              }, {} as { [key: string]: string })
+            );
+          }
+
+          let { data: turnsData, error: turnsError } = await supabase
+            .rpc('get_game_turns', {
+              param_game_id: id,
             })
-          );
+            .order('id', { ascending: false })
+            .limit(10);
 
-          setAvatars(
-            playerColorsData.reduce((acc, curr) => {
-              acc[curr.player_id] = curr.color;
-              return acc;
-            }, {} as { [key: string]: string })
-          );
-        }
-
-        let { data: turnsData, error: turnsError } = await supabase
-          .rpc('get_game_turns', {
-            param_game_id: id,
-          })
-          .order('id', { ascending: false })
-          .limit(10);
-
-        if (turnsData && turnsData.length) {
-          setTurns(turnsData.reverse());
+          if (turnsData && turnsData.length) {
+            setTurns(turnsData.reverse());
+          }
         }
       }
     };
 
     init();
-  }, [game, supabase]);
+
+    return () => {};
+  }, [id, supabase, player]);
+
+  // useEffect(() => {
+  //   const init = async () => {
+  //     if (id && game && supabase && player) {
+  //       const { data: playerColorsData, error: playerColorsError } =
+  //         await supabase.rpc('get_players', {
+  //           param_game_id: id,
+  //         });
+
+  //       if (playerColorsData && playerColorsData.length) {
+  //         setPlayers(
+  //           playerColorsData.map((p) => {
+  //             if (p.player_id === player.id) {
+  //               if (p.player_turn === game.turn) {
+  //                 supabase
+  //                   .from('game_players')
+  //                   .select('timer_started_at, timer_will_end_at')
+  //                   .eq('player_id', player?.id)
+  //                   .then(({ data, error }) => {
+  //                     if (data) {
+  //                       setTurn((old) => ({
+  //                         value: old?.value || 0,
+  //                         startedAt: new Date(data[0].timer_started_at) || null,
+  //                         endsAt: new Date(data[0].timer_will_end_at) || null,
+  //                         ended: false,
+  //                       }));
+
+  //                       const timerEnd = new Date(data[0].timer_will_end_at);
+  //                       const now = new Date();
+  //                       const delay = timerEnd.getTime() - now.getTime();
+
+  //                       if (delay > 0) {
+  //                         const timeout = setTimeout(async () => {
+  //                           supabase
+  //                             .from('game_turns')
+  //                             .insert({
+  //                               player_id: player?.id,
+  //                               word: '',
+  //                               game_id: id,
+  //                               existent: false,
+  //                               repeated: false,
+  //                               accepted: false,
+  //                             })
+  //                             .then(() => {
+  //                               setTurn((old) => {
+  //                                 return {
+  //                                   value: old?.value || 0,
+  //                                   startedAt: null,
+  //                                   endsAt: null,
+  //                                   ended: true,
+  //                                 };
+  //                               });
+  //                             });
+  //                         }, delay);
+
+  //                         return () => clearTimeout(timeout);
+  //                       }
+  //                     }
+  //                   });
+  //               }
+  //               setTurnDuration({
+  //                 duration: game.turn_duration || 60,
+  //               });
+  //               setDisabled({
+  //                 value: p.player_turn !== game.turn,
+  //                 message:
+  //                   p.player_turn !== game.turn ? 'Wait for your turn' : '',
+  //               });
+  //             }
+  //             return {
+  //               id: p.player_id,
+  //             };
+  //           })
+  //         );
+
+  //         setAvatars(
+  //           playerColorsData.reduce((acc, curr) => {
+  //             acc[curr.player_id] = curr.color;
+  //             return acc;
+  //           }, {} as { [key: string]: string })
+  //         );
+  //       }
+
+  //       let { data: turnsData, error: turnsError } = await supabase
+  //         .rpc('get_game_turns', {
+  //           param_game_id: id,
+  //         })
+  //         .order('id', { ascending: false })
+  //         .limit(10);
+
+  //       if (turnsData && turnsData.length) {
+  //         setTurns(turnsData.reverse());
+  //       }
+  //     }
+  //   };
+
+  //   init();
+  // }, [id, game, player, supabase]);
+
+  // useEffect(() => {
+  //   if (game && player && id) {
+
+  //   return () => {};
+  // }, [id, player, game]);
 
   useEffect(() => {
-    if (supabase) {
+    if (turn?.startedAt && turn.endsAt) {
+      const interval = setInterval(() => {
+        setTurn((old) => {
+          if (old && old.startedAt) {
+            const now = new Date();
+            const diff = now.getTime() - old.startedAt.getTime();
+            const duration = (turnDuration?.duration || 60) * 1000;
+
+            if (now >= turn.endsAt!) {
+              return { ...old, startedAt: null, endsAt: null, ended: true };
+            }
+
+            // Calculate the progress based on the difference between the current time and the start time
+            const progress = (diff / duration) * 100;
+            setProgress(progress);
+          }
+          return old;
+        });
+      }, 1000);
+
+      setExpirationInterval(interval);
+
+      return () => clearInterval(interval);
+    }
+
+    return () => {};
+  }, [turn]);
+
+  useEffect(() => {
+    if (turn !== null && turnSet === null) {
       supabase
         .channel(`game=${id}`)
         .on(
@@ -114,7 +322,9 @@ const Game = () => {
             table: 'game_turns',
             filter: `game_id=eq.${id}`,
           },
-          (payload) => {
+          async (payload) => {
+            console.log('new turn added');
+            console.log(payload);
             setTurns((old) =>
               [
                 ...old,
@@ -138,10 +348,59 @@ const Game = () => {
             table: 'game',
             filter: `id=eq.${id}`,
           },
-          (payload) => {
+          async (payload) => {
+            console.log('game updated', payload);
+            if (payload.new.turn === turn?.value) {
+              supabase
+                .from('game_players')
+                .select('timer_started_at, timer_will_end_at')
+                .eq('player_id', player?.id)
+                .then(({ data, error }) => {
+                  if (data) {
+                    setTurn((old) => ({
+                      value: old?.value || 0,
+                      startedAt: new Date(data[0].timer_started_at) || null,
+                      endsAt: new Date(data[0].timer_will_end_at) || null,
+                      ended: false,
+                    }));
+
+                    const timerEnd = new Date(data[0].timer_will_end_at);
+                    const now = new Date();
+                    const delay = timerEnd.getTime() - now.getTime();
+
+                    const timeout = setTimeout(
+                      async () => {
+                        await supabase.from('game_turns').insert({
+                          player_id: player?.id,
+                          word: '',
+                          game_id: id,
+                          existent: false,
+                          repeated: false,
+                          accepted: false,
+                        });
+                        setTurn((old) => {
+                          if (old) {
+                            return {
+                              ...old,
+                              startedAt: null,
+                              endsAt: null,
+                              ended: false,
+                            };
+                          }
+                          return old;
+                        });
+                      },
+                      delay > 0 ? delay : 0
+                    );
+
+                    return () => clearTimeout(timeout);
+                  }
+                });
+            }
             setDisabled({
-              value: payload.new.turn !== turn,
-              message: payload.new.turn !== turn ? 'Wait for your turn' : '',
+              value: payload.new.turn !== turn?.value,
+              message:
+                payload.new.turn !== turn?.value ? 'Wait for your turn' : '',
             });
           }
         )
@@ -155,7 +414,10 @@ const Game = () => {
           },
           (payload) => {
             if (payload.new.player_id !== player?.id) {
-              setNotExists({ word: payload.new.content, id: payload.new.id });
+              setNotExists({
+                word: payload.new.content,
+                id: payload.new.id,
+              });
               setTimer({ duration: 60, startedAt: new Date() });
               showModal('notExistsPoll');
             }
@@ -205,8 +467,21 @@ const Game = () => {
                 repeated: false,
                 accepted: true,
               });
+
+              setWord(game?.prefix || '');
+              clearTimeout(expirationTimeout?.timeout);
+              clearInterval(expirationInterval);
+              setExpirationInterval(null);
+              setExpirationTimeout(null);
+              setTurn((old) => {
+                return {
+                  value: old?.value || 0,
+                  startedAt: null,
+                  endsAt: null,
+                  ended: true,
+                };
+              });
             } else if (payload.new.result === false) {
-              console.log('xmm');
               await supabase.from('game_turns').insert({
                 player_id: player?.id,
                 word: payload.new.content,
@@ -218,9 +493,13 @@ const Game = () => {
             }
           }
         )
-        .subscribe();
+        .subscribe((status, err) => {
+          console.log(status, err);
+        });
+
+      setTurnSet(true);
     }
-  }, [turn, supabase]);
+  }, [id, player, game, turn]);
 
   const showModal = (modalId) => {
     (document.getElementById(modalId) as HTMLDialogElement).showModal();
@@ -277,6 +556,7 @@ const Game = () => {
   };
 
   const insertAcceptedTurn = async (existence, repeated, accepted) => {
+    console.log('insertAcceptedTurn');
     supabase
       .from('game_players')
       .update({ points: playerPoints + 1 })
@@ -305,7 +585,21 @@ const Game = () => {
                 repeated: repeated,
                 accepted: accepted,
               })
-              .then(({ data, error }) => {});
+              .then(({ data, error }) => {
+                setWord(game?.prefix || '');
+                clearTimeout(expirationTimeout?.timeout);
+                clearInterval(expirationInterval);
+                setExpirationInterval(null);
+                setExpirationTimeout(null);
+                setTurn((old) => {
+                  return {
+                    value: old?.value || 0,
+                    startedAt: null,
+                    endsAt: null,
+                    ended: true,
+                  };
+                });
+              });
           });
       });
   };
@@ -344,6 +638,19 @@ const Game = () => {
           repeated: repeated,
           accepted: true,
         });
+        setWord(game?.prefix || '');
+        clearTimeout(expirationTimeout?.timeout);
+        clearInterval(expirationInterval);
+        setExpirationInterval(null);
+        setExpirationTimeout(null);
+        setTurn((old) => {
+          return {
+            value: old?.value || 0,
+            startedAt: null,
+            endsAt: null,
+            ended: true,
+          };
+        });
       } else if (!existence) {
         showModal('startPoll');
       } else {
@@ -380,6 +687,10 @@ const Game = () => {
               <div className='uppercase separated text-2xl text-neutral roboto-bold'>
                 repeated
               </div>
+            ) : !turn.word.length && !turn.existent && !turn.accepted ? (
+              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+                EXPIRED
+              </div>
             ) : !turn.existent && !turn.accepted ? (
               <div className='uppercase separated text-2xl text-neutral roboto-bold'>
                 NONEXISTENT
@@ -398,27 +709,37 @@ const Game = () => {
           {disabled.message}
         </span>
       )}
+      <div className='grid gap-0'>
+        {turn?.startedAt && (
+          <progress
+            className='progress progress-primary'
+            value={progress}
+            max={100}
+          ></progress>
+        )}
 
-      <div
-        className={`relative bg-neutral flex items-center px-3 ${
-          disabled.value && 'text-gray-500 brightness-50'
-        }`}
-      >
         <div
-          className='w-3 h-3 '
-          style={{
-            background: player ? avatars[player.id] : '#fff',
-          }}
-        ></div>
-        <input
-          type='text'
-          className='p-3 bg-transparent w-10/12 uppercase separated-min'
-          value={word}
-          onChange={changeHandler}
-          onKeyDown={keystrokeHandler}
-          disabled={disabled.value}
-        />
-        <Send className='absolute right-3 bottom-3 ' size={20} />
+          className={`relative bg-neutral flex items-center px-3 ${
+            disabled.value && 'text-gray-500 brightness-50'
+          }`}
+        >
+          <div
+            className='w-3 h-3 '
+            style={{
+              background: player ? avatars[player.id] : '#fff',
+            }}
+          ></div>
+
+          <input
+            type='text'
+            className='p-3 bg-transparent w-10/12 uppercase separated-min'
+            value={word}
+            onChange={changeHandler}
+            onKeyDown={keystrokeHandler}
+            disabled={disabled.value}
+          />
+          <Send className='absolute right-3 bottom-3 ' size={20} />
+        </div>
       </div>
 
       <Confirm
