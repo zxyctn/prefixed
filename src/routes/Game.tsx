@@ -12,8 +12,8 @@ const Game = () => {
   const id = useParams<{ id: string }>().id || null;
   const supabase: SupabaseClient = useOutletContext() || null;
 
-  const [game, setGame] = useState<any | null>(null);
   const player = useRecoilValue(currentUser) || null;
+  const [game, setGame] = useRecoilState(currentGame);
   const [players, setPlayers] = useRecoilState(gamePlayers);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
   const [notExists, setNotExists] = useState<{ id: number; word: string }>();
@@ -105,7 +105,7 @@ const Game = () => {
                                 })
                                 .then(() => {
                                   setWord(gameData[0].prefix || '');
-                                  clearTimeout(expirationTimeout?.timeout);
+                                  clearTimeout(expirationTimeout);
                                   clearInterval(expirationInterval);
                                   setProgress(0);
                                   setExpirationInterval(null);
@@ -123,9 +123,7 @@ const Game = () => {
                             delay > 0 ? delay : 0
                           );
 
-                          setExpirationTimeout({
-                            timeout: timeout,
-                          });
+                          setExpirationTimeout(timeout);
 
                           return () => clearTimeout(timeout);
                         }
@@ -179,7 +177,11 @@ const Game = () => {
 
     init();
 
-    return () => {};
+    return () => {
+      // Clear the timeout or interval here
+      clearTimeout(expirationTimeout);
+      clearInterval(expirationInterval);
+    };
   }, [id, supabase, player]);
 
   useEffect(() => {
@@ -208,7 +210,11 @@ const Game = () => {
       return () => clearInterval(interval);
     }
 
-    return () => {};
+    return () => {
+      // Clear the timeout or interval here
+      clearTimeout(expirationTimeout);
+      clearInterval(expirationInterval);
+    };
   }, [turn]);
 
   useEffect(() => {
@@ -286,6 +292,7 @@ const Game = () => {
             filter: `player_id=eq.${player?.id}`,
           },
           async (payload) => {
+            console.log(payload);
             if (payload.new.result === true) {
               await supabase
                 .from('game_players')
@@ -323,7 +330,7 @@ const Game = () => {
               });
 
               setWord(game?.prefix || '');
-              clearTimeout(expirationTimeout?.timeout);
+              clearTimeout(expirationTimeout);
               clearInterval(expirationInterval);
               setProgress(0);
               setExpirationInterval(null);
@@ -346,7 +353,7 @@ const Game = () => {
                 accepted: false,
               });
               setWord(game?.prefix || '');
-              clearTimeout(expirationTimeout?.timeout);
+              clearTimeout(expirationTimeout);
               clearInterval(expirationInterval);
               setProgress(0);
               setExpirationInterval(null);
@@ -396,7 +403,7 @@ const Game = () => {
                   })
                   .then(() => {
                     setWord(game?.prefix || '');
-                    clearTimeout(expirationTimeout?.timeout);
+                    clearTimeout(expirationTimeout);
                     clearInterval(expirationInterval);
                     setProgress(0);
                     setExpirationInterval(null);
@@ -414,11 +421,7 @@ const Game = () => {
               delay > 0 ? delay : 0
             );
 
-            setExpirationTimeout({
-              timeout: timeout,
-            });
-
-            return () => clearTimeout(timeout);
+            setExpirationTimeout(timeout);
           }
         )
         .subscribe((status, err) => {
@@ -427,6 +430,12 @@ const Game = () => {
 
       setTurnSet(true);
     }
+
+    return () => {
+      // Clear the timeout or interval here
+      clearTimeout(expirationTimeout);
+      clearInterval(expirationInterval);
+    };
   }, [id, player, game, turn]);
 
   const showModal = (modalId) => {
@@ -438,6 +447,23 @@ const Game = () => {
   };
 
   const onStartPoll = async () => {
+    setWord(game?.prefix || '');
+    clearTimeout(expirationTimeout);
+    clearInterval(expirationInterval);
+    setProgress(0);
+    setExpirationInterval(null);
+    setExpirationTimeout(null);
+    setTurn((old) => {
+      return {
+        value: old?.value || 0,
+        startedAt: null,
+        endsAt: null,
+        ended: true,
+      };
+    });
+
+    setDisabled({ value: true, message: 'Poll in progress' });
+
     await supabase.from('game_votes').insert([
       {
         game_id: id,
@@ -448,8 +474,6 @@ const Game = () => {
         yes: 1,
       },
     ]);
-
-    setDisabled({ value: true, message: 'Poll in progress' });
   };
 
   const onCancelStartPoll = async () => {
@@ -469,6 +493,7 @@ const Game = () => {
   };
 
   const onCancelPoll = async () => {
+    console.log('onCancelPoll')
     if (notExists) {
       let { data, error } = await supabase.rpc('increment_vote', {
         vote_id: notExists?.id,
@@ -515,7 +540,7 @@ const Game = () => {
               })
               .then(({ data, error }) => {
                 setWord(game?.prefix || '');
-                clearTimeout(expirationTimeout?.timeout);
+                clearTimeout(expirationTimeout);
                 clearInterval(expirationInterval);
                 setProgress(0);
                 setExpirationInterval(null);
@@ -568,7 +593,7 @@ const Game = () => {
           accepted: true,
         });
         setWord(game?.prefix || '');
-        clearTimeout(expirationTimeout?.timeout);
+        clearTimeout(expirationTimeout);
         clearInterval(expirationInterval);
         setProgress(0);
         setExpirationInterval(null);
@@ -692,7 +717,7 @@ const Game = () => {
         cancelButtonText='No'
         onConfirm={onConfirmPoll}
         onCancel={onCancelPoll}
-        onTimerFinish={() => hideModal('notExistsPoll')}
+        onTimerFinish={onCancelPoll}
         duration={timer}
       >
         <h1 className='separated roboto-bold uppercase text-center text-2xl'>
