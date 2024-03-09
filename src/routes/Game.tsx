@@ -511,11 +511,11 @@ const Game = () => {
   const onConfirmLeave = async () => {
     // TODO: Leave the game by deleting user's id from game_players
     hideModal('leaveGame');
-  }
+  };
 
   const onCancelLeave = async () => {
     hideModal('leaveGame');
-  }
+  };
 
   const insertAcceptedTurn = async (existence, repeated, accepted) => {
     console.log('insertAcceptedTurn');
@@ -651,27 +651,31 @@ const Game = () => {
       <div className='grow flex flex-col gap-5'>
         {turns.map((turn) => (
           <div key={turn.id} className='flex gap-3 items-center'>
-            <div
-              className='w-3 h-3'
-              style={{
-                background: avatars[turn.player_id] || '#fff',
-              }}
-            ></div>
+            <div className='block'>
+              <div
+                className='w-3 h-3'
+                style={{
+                  background: avatars[turn.player_id] || '#fff',
+                }}
+              ></div>
+            </div>
 
             {turn.repeated ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
                 repeated
               </div>
             ) : !turn.word.length && !turn.existent && !turn.accepted ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
                 EXPIRED
               </div>
             ) : !turn.existent && !turn.accepted ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold'>
+              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
                 NONEXISTENT
               </div>
             ) : (
-              <div className='separated uppercase text-2xl'>{turn.word}</div>
+              <div className='separated uppercase text-2xl overflow-x-auto'>
+                {turn.word}
+              </div>
             )}
           </div>
         ))}
