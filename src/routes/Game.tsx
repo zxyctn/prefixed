@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Send } from 'react-feather';
+import { Send, Sliders, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -493,7 +493,7 @@ const Game = () => {
   };
 
   const onCancelPoll = async () => {
-    console.log('onCancelPoll')
+    console.log('onCancelPoll');
     if (notExists) {
       let { data, error } = await supabase.rpc('increment_vote', {
         vote_id: notExists?.id,
@@ -507,6 +507,15 @@ const Game = () => {
       setNotExists(undefined);
     }
   };
+
+  const onConfirmLeave = async () => {
+    // TODO: Leave the game by deleting user's id from game_players
+    hideModal('leaveGame');
+  }
+
+  const onCancelLeave = async () => {
+    hideModal('leaveGame');
+  }
 
   const insertAcceptedTurn = async (existence, repeated, accepted) => {
     console.log('insertAcceptedTurn');
@@ -625,9 +634,20 @@ const Game = () => {
 
   return (
     <div className='h-full w-full p-4 flex flex-col'>
-      <span className='uppercase separated-min flex justify-center w-full text-2xl pb-4'>
-        {game?.prefix}
-      </span>
+      <div className='flex justify-between pb-4 items-center'>
+        <span>
+          <button>
+            <Sliders />
+          </button>
+        </span>
+        <span className='uppercase separated-min flex justify-center w-full text-2xl'>
+          {game?.prefix}
+        </span>
+        <button onClick={() => showModal('leaveGame')}>
+          <X />
+        </button>
+      </div>
+
       <div className='grow flex flex-col gap-5'>
         {turns.map((turn) => (
           <div key={turn.id} className='flex gap-3 items-center'>
@@ -722,6 +742,19 @@ const Game = () => {
       >
         <h1 className='separated roboto-bold uppercase text-center text-2xl'>
           {notExists?.word}
+        </h1>
+      </Confirm>
+
+      <Confirm
+        id='leaveGame'
+        title='Leave?'
+        confirmButtonText='Yes'
+        cancelButtonText='No'
+        onConfirm={onConfirmLeave}
+        onCancel={onCancelLeave}
+      >
+        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+          Leave the game?
         </h1>
       </Confirm>
     </div>
