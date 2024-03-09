@@ -39,8 +39,10 @@ const Confirm = ({
   }, [duration]);
 
   useEffect(() => {
+    let interval;
+
     if (timer) {
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         setTimer((old) => {
           if (old && old.current < old.duration) {
             return { ...old, current: old.current + 0.1 };
@@ -55,7 +57,11 @@ const Confirm = ({
       return () => clearInterval(interval);
     }
 
-    return () => {};
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [timer]);
 
   useEffect(() => {
