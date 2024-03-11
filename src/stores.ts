@@ -8,11 +8,6 @@ export const currentGame = atom<GameType | null>({
   default: null,
 });
 
-export const gamePlayers = atom<{ id: string, color: string }[]>({
-  key: 'gamePlayers',
-  default: [],
-});
-
 export const currentSession = atom<Session | null>({
   key: 'currentSession',
   default: undefined,

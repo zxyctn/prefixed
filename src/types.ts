@@ -42,3 +42,31 @@ export type GameType = {
   turn_duration: number | null;
   unique_id: string;
 };
+
+export type GamePlayerType = {
+  created_at: string;
+  id: string;
+  points: number;
+  turn: number;
+  ready: boolean;
+  timer_started_at: string;
+  timer_will_end_at: string;
+  color: string;
+};
+
+export type GameTurnType = {
+  created_at: string;
+  existent: boolean;
+  accepted: boolean;
+  repeated: boolean;
+  word: string;
+  player_id: string;
+  id: number;
+};
+
+export type CurrentTurnType = {
+  value: number;
+  startedAt: Date | null;
+  endsAt: Date | null;
+  ended: boolean;
+};
