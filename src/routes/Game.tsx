@@ -40,12 +40,23 @@ const Game = () => {
       value: old?.value || -1,
       startedAt: null,
       endsAt: null,
-      ended: true,
+      ended: false,
     }));
     clearTimeout(expirationTimeout);
     clearInterval(expirationInterval);
     setExpirationTimeout(null);
     setExpirationInterval(null);
+  };
+
+  const insertEmptyAfterTimeout = async () => {
+    await supabase.from('game_turns').insert({
+      player_id: player?.id,
+      word: '',
+      game_id: id,
+      existent: false,
+      repeated: false,
+      accepted: false,
+    });
   };
 
   useEffect(() => {
@@ -73,26 +84,6 @@ const Game = () => {
                   endsAt: new Date(p.timer_will_end_at) || null,
                   ended: false,
                 });
-
-                const timerEnd = new Date(p.timer_will_end_at);
-                const now = new Date();
-                const delay = timerEnd.getTime() - now.getTime();
-
-                const timeout = setTimeout(
-                  async () => {
-                    await supabase.from('game_turns').insert({
-                      player_id: player?.id,
-                      word: '',
-                      game_id: id,
-                      existent: false,
-                      repeated: false,
-                      accepted: false,
-                    });
-                  },
-                  delay > 0 ? delay : 0
-                );
-
-                setExpirationTimeout(timeout);
               } else {
                 setTurn({
                   value: p.turn,
@@ -126,7 +117,7 @@ const Game = () => {
   }, [id, supabase, player]);
 
   useEffect(() => {
-    if (turn?.startedAt && turn.endsAt) {
+    if (turn && turn?.startedAt && turn.endsAt && !turn.ended) {
       const interval = setInterval(() => {
         setTurn((old) => {
           if (old && old.startedAt) {
@@ -151,6 +142,15 @@ const Game = () => {
       return () => {
         clearInterval(interval);
       };
+    } else if (turn && !turn.startedAt && !turn.endsAt && turn.ended) {
+      insertEmptyAfterTimeout().then(() => {
+        setTurn((old) => ({
+          value: old?.value || -1,
+          startedAt: null,
+          endsAt: null,
+          ended: false,
+        }));
+      });
     }
 
     return () => {
@@ -261,27 +261,6 @@ const Game = () => {
                 endsAt: new Date(payload.new.timer_will_end_at) || null,
                 ended: false,
               }));
-
-              const timerEnd = new Date(payload.new.timer_will_end_at);
-              const now = new Date();
-              const delay = timerEnd.getTime() - now.getTime();
-              const timeout = setTimeout(
-                async () => {
-                  await supabase.from('game_turns').insert({
-                    player_id: player?.id,
-                    word: '',
-                    game_id: id,
-                    existent: false,
-                    repeated: false,
-                    accepted: false,
-                  });
-                },
-                delay > 0 ? delay : 0
-              );
-
-              setExpirationTimeout(timeout);
-
-              return () => clearTimeout(timeout);
             }
           }
         )
