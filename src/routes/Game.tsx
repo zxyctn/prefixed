@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Send, Sliders, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
 import Confirm from '../components/Confirm';
-import { currentGame, currentUser } from '../stores';
+import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
 
 const Game = () => {
@@ -14,6 +14,7 @@ const Game = () => {
 
   const player = useRecoilValue(currentUser) || null;
   const [game, setGame] = useRecoilState(currentGame);
+  const [loading, setLoading] = useRecoilState(isLoading);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
   const [word, setWord] = useState<string>('');
   const [turns, setTurns] = useState<GameTurnType[]>([]);
@@ -49,6 +50,7 @@ const Game = () => {
   };
 
   const insertEmptyAfterTimeout = async () => {
+    setLoading(true);
     await supabase.from('game_turns').insert({
       player_id: player?.id,
       word: '',
@@ -57,14 +59,17 @@ const Game = () => {
       repeated: false,
       accepted: false,
     });
+    setLoading(false);
   };
 
   useEffect(() => {
     const init = async () => {
       if (id && supabase && player) {
+        setLoading(true);
         let { data, error } = await supabase.rpc('get_game_info', {
           param_id: id,
         });
+        setLoading(false);
 
         if (data) {
           setGame(data);
@@ -77,21 +82,14 @@ const Game = () => {
                 message: p.turn !== data.turn ? 'Wait for your turn' : '',
               });
 
-              if (p.turn === data.turn) {
-                setTurn({
-                  value: p.turn,
-                  startedAt: new Date(p.timer_started_at) || null,
-                  endsAt: new Date(p.timer_will_end_at) || null,
-                  ended: false,
-                });
-              } else {
-                setTurn({
-                  value: p.turn,
-                  startedAt: null,
-                  endsAt: null,
-                  ended: false,
-                });
-              }
+              setTurn({
+                value: p.turn,
+                startedAt:
+                  p.turn === data.turn ? new Date(p.timer_started_at) : null,
+                endsAt:
+                  p.turn === data.turn ? new Date(p.timer_will_end_at) : null,
+                ended: false,
+              });
             }
           });
 
@@ -234,9 +232,11 @@ const Game = () => {
             filter: `player_id=eq.${player?.id}`,
           },
           async (payload) => {
+            setLoading(true);
             const { error } = await supabase.rpc('notexists_voting_handler', {
               param_id: payload.new.id,
             });
+            setLoading(false);
             if (error) {
               console.error(error);
             }
@@ -287,6 +287,7 @@ const Game = () => {
   const onStartPoll = async () => {
     resetStates();
     setDisabled({ value: true, message: 'Poll in progress' });
+    setLoading(true);
     await supabase.from('game_votes').insert([
       {
         game_id: id,
@@ -297,6 +298,7 @@ const Game = () => {
         yes: 1,
       },
     ]);
+    setLoading(false);
   };
 
   const onCancelStartPoll = async () => {
@@ -304,11 +306,12 @@ const Game = () => {
   };
 
   const onConfirmPoll = async () => {
+    setLoading(true);
     let { data, error } = await supabase.rpc('increment_vote', {
       vote_id: notExists?.id,
       vote_type: 'yes',
     });
-
+    setLoading(false);
     if (error) console.error(error);
 
     hideModal('notExistsPoll');
@@ -318,10 +321,12 @@ const Game = () => {
     if (notExists && !sent) {
       setSent(true);
 
+      setLoading(true);
       let { data, error } = await supabase.rpc('increment_vote', {
         vote_id: notExists?.id,
         vote_type: 'no',
       });
+      setLoading(false);
 
       if (error) console.error(error);
 
@@ -354,6 +359,7 @@ const Game = () => {
 
   const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      setLoading(true);
       const { data: checkWordData, error: checkWordError } = await supabase.rpc(
         'check_word',
         {
@@ -362,12 +368,14 @@ const Game = () => {
           param_word: word,
         }
       );
+      setLoading(false);
 
       const { repeated, existence } = checkWordData;
 
       if (!existence) {
         showModal('startPoll');
       } else {
+        setLoading(true);
         await supabase.rpc('insert_new_turn', {
           g_id: id,
           word: word,
@@ -375,6 +383,7 @@ const Game = () => {
           repeated: repeated,
           accepted: existence,
         });
+        setLoading(false);
         resetStates();
       }
     } else if (

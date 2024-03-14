@@ -17,3 +17,8 @@ export const currentUser = atom<User | null>({
   key: 'currentUser',
   default: null,
 });
+
+export const isLoading = atom<boolean>({
+  key: 'isLoading',
+  default: false,
+});

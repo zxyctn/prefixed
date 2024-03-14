@@ -4,7 +4,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { createClient } from '@supabase/supabase-js';
 
 import Navigation from '../components/Navigation';
-import { currentSession, currentUser } from '../stores';
+import { currentSession, currentUser, isLoading } from '../stores';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -16,12 +16,14 @@ const Root = ({ page, setPage }) => {
   const navigate = useNavigate();
 
   const [session, setSession] = useRecoilState(currentSession);
+  const [loading, setLoading] = useRecoilState(isLoading);
   const setPlayer = useSetRecoilState(currentUser);
 
   useEffect(() => {
+    setLoading(true);
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-    });
+    }).finally(() => setLoading(false));
 
     const {
       data: { subscription },
@@ -54,6 +56,12 @@ const Root = ({ page, setPage }) => {
 
   return (
     <div className='h-screen flex flex-col'>
+      {loading && (
+        <div className='fixed w-full h-full flex justify-center items-center z-10'>
+          <div className='blur absolute'></div>
+          <span className='loading loading-spinner loading-lg z-50'></span>
+        </div>
+      )}
       <div className='grow'>
         <Outlet context={supabase} />
       </div>
