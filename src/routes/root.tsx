@@ -21,9 +21,12 @@ const Root = ({ page, setPage }) => {
 
   useEffect(() => {
     setLoading(true);
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    }).finally(() => setLoading(false));
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+      })
+      .finally(() => setLoading(false));
 
     const {
       data: { subscription },
@@ -40,11 +43,18 @@ const Root = ({ page, setPage }) => {
   }, []);
 
   useEffect(() => {
-    if (session === null) {
+    if (
+      session === null &&
+      location.pathname !== '/register' &&
+      location.pathname !== '/login' &&
+      location.pathname !== '/forgot-password'
+    ) {
       navigate('/login');
     } else if (
-      location.pathname === '/login' ||
-      location.pathname === '/register'
+      session &&
+      (location.pathname === '/login' ||
+        location.pathname === '/register' ||
+        location.pathname === '/forgot-password')
     ) {
       navigate('/');
     }

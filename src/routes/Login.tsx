@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { User, Key } from 'react-feather';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -8,6 +8,7 @@ import Button from '../components/Button';
 
 const Login = () => {
   const supabase: SupabaseClient = useOutletContext();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,11 +44,22 @@ const Login = () => {
         <Button className='btn-primary' type='submit'>
           Login
         </Button>
-        <Button className='btn-secondary'>Register</Button>
+        <Button
+          className='btn-secondary'
+          onClick={() => {
+            navigate('/register');
+          }}
+        >
+          Register
+        </Button>
 
-        <a href='' className='uppercase separated-min md:separated font-medium'>
+        <button
+          type='button'
+          onClick={() => navigate('/forgot-password')}
+          className='uppercase separated-min md:separated font-medium'
+        >
           Forgot password?
-        </a>
+        </button>
       </form>
     </div>
   );
