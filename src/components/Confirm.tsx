@@ -52,7 +52,7 @@ const Confirm = ({
           }
           return old;
         });
-      }, 100);
+      }, 1);
 
       return () => clearInterval(interval);
     }
