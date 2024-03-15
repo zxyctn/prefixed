@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Send, Sliders, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
 import Confirm from '../components/Confirm';
+import Turn from '../components/Turn';
 import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
 
@@ -133,7 +135,7 @@ const Game = () => {
           }
           return old;
         });
-      }, 1000);
+      }, 1);
 
       setExpirationInterval(interval);
 
@@ -171,6 +173,7 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           async (payload) => {
+            // setTimeout(() => {
             setTurns((old) =>
               [
                 ...old,
@@ -185,6 +188,7 @@ const Game = () => {
                 },
               ].slice(-10)
             );
+            // }, 5000);
           }
         )
         .on(
@@ -414,37 +418,17 @@ const Game = () => {
       </div>
 
       <div className='grow flex flex-col gap-5'>
-        {turns.map((turn) => (
-          <div key={turn.id} className='flex gap-3 items-center'>
-            <div className='block'>
-              <div
-                className='w-3 h-3'
-                style={{
-                  background: avatars[turn.player_id] || '#fff',
-                }}
-              ></div>
-            </div>
-
-            {turn.repeated ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
-                repeated
-              </div>
-            ) : !turn.word.length && !turn.existent && !turn.accepted ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
-                EXPIRED
-              </div>
-            ) : !turn.existent && !turn.accepted ? (
-              <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
-                NONEXISTENT
-              </div>
-            ) : (
-              <div className='separated uppercase text-2xl overflow-x-auto'>
-                {turn.word}
-              </div>
-            )}
-          </div>
-        ))}
+        <AnimatePresence>
+          {turns.map((turn) => (
+            <Turn
+              turn={turn}
+              color={avatars[turn?.player_id] || 'fff'}
+              key={turn.created_at}
+            />
+          ))}
+        </AnimatePresence>
       </div>
+
       {disabled.value && (
         <span
           className='uppercase separated-min bg-primary p-2'
