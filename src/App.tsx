@@ -11,6 +11,7 @@ import Join from './routes/Join';
 import Create from './routes/Create';
 import Invites from './routes/Invites';
 import Settings from './routes/Settings';
+import ForgotPassword from './routes/ForgotPassword';
 
 const App = () => {
   const [page, setPage] = useState<string>('');
@@ -32,6 +33,10 @@ const App = () => {
         {
           path: 'register',
           element: <Register />,
+        },
+        {
+          path: 'forgot-password',
+          element: <ForgotPassword />,
         },
         {
           path: 'join',
