@@ -45,18 +45,18 @@ const Root = ({ page, setPage }) => {
   useEffect(() => {
     if (
       session === null &&
-      location.pathname !== '/register' &&
-      location.pathname !== '/login' &&
-      location.pathname !== '/forgot-password'
+      location.pathname !== '/prefixed/register' &&
+      location.pathname !== '/prefixed/login' &&
+      location.pathname !== '/prefixed/forgot-password'
     ) {
-      navigate('/login');
+      navigate('/prefixed/login');
     } else if (
       session &&
-      (location.pathname === '/login' ||
-        location.pathname === '/register' ||
-        location.pathname === '/forgot-password')
+      (location.pathname === '/prefixed/login' ||
+        location.pathname === '/prefixed/register' ||
+        location.pathname === '/prefixed/forgot-password')
     ) {
-      navigate('/');
+      navigate('/prefixed/');
     }
   }, [session]);
 

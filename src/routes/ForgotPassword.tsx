@@ -49,7 +49,7 @@ const ForgotPassword = () => {
         <button className='fixed top-8 left-8 flex gap-5 items-center'>
           <ArrowLeft />
           <span
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/prefixed/login')}
             className='separated uppercase font-medium'
           >
             Back

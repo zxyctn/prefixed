@@ -47,7 +47,7 @@ const Login = () => {
         <Button
           className='btn-secondary'
           onClick={() => {
-            navigate('/register');
+            navigate('/prefixed/register');
           }}
         >
           Register
@@ -55,7 +55,7 @@ const Login = () => {
 
         <button
           type='button'
-          onClick={() => navigate('/forgot-password')}
+          onClick={() => navigate('/prefixed/forgot-password')}
           className='uppercase separated-min md:separated font-medium'
         >
           Forgot password?

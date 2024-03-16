@@ -18,7 +18,7 @@ const App = () => {
 
   const router = createBrowserRouter([
     {
-      path: '/',
+      path: '/prefixed',
       element: <Root page={page} setPage={setPage} />,
       errorElement: <div>Error</div>,
       children: [

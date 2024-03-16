@@ -68,7 +68,7 @@ const Register = () => {
         <Button
           className='btn-secondary'
           onClick={() => {
-            navigate('/login');
+            navigate('/prefixed/login');
           }}
         >
           Login
