@@ -9,6 +9,7 @@ import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
+import toast from 'react-hot-toast';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -103,7 +104,10 @@ const Game = () => {
           );
         }
 
-        console.error(error);
+        if (error) {
+          console.error(error);
+          toast.error(error.message);
+        }
       }
     };
 
@@ -243,6 +247,7 @@ const Game = () => {
             setLoading(false);
             if (error) {
               console.error(error);
+              toast.error(error.message);
             }
             resetStates();
           }
@@ -316,7 +321,10 @@ const Game = () => {
       vote_type: 'yes',
     });
     setLoading(false);
-    if (error) console.error(error);
+    if (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
 
     hideModal('notExistsPoll');
   };
@@ -332,7 +340,10 @@ const Game = () => {
       });
       setLoading(false);
 
-      if (error) console.error(error);
+      if (error) {
+        console.error(error);
+        toast.error(error.message);
+      }
 
       hideModal('notExistsPoll');
       setNotExists(undefined);

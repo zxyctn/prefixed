@@ -6,6 +6,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import toast from 'react-hot-toast';
 
 const ForgotPassword = () => {
   const supabase: SupabaseClient = useOutletContext();
@@ -25,9 +26,11 @@ const ForgotPassword = () => {
       ).showModal();
       setMessage(error.message);
       console.error(error);
+      toast.error(error.message);
     } else {
       setMessage('Password reset email sent');
       console.log(data);
+      toast.success('Password reset email sent');
     }
   };
 

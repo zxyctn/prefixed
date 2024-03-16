@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import InputField from '../components/InputField';
 import Button from '../components/Button';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const supabase: SupabaseClient = useOutletContext();
@@ -28,6 +29,7 @@ const Register = () => {
 
     if (error) {
       console.error(error);
+      toast.error(error.message);
     }
   };
 

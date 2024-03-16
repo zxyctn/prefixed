@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import Navigation from '../components/Navigation';
 import { currentSession, currentUser, isLoading } from '../stores';
+import { Toaster } from 'react-hot-toast';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -66,6 +67,7 @@ const Root = ({ page, setPage }) => {
 
   return (
     <div className='h-screen flex flex-col'>
+      <Toaster />
       {loading && (
         <div className='fixed w-full h-full flex justify-center items-center z-10'>
           <div className='blur absolute'></div>
