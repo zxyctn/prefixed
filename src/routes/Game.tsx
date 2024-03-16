@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import { Send, Sliders, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -9,7 +10,6 @@ import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
-import toast from 'react-hot-toast';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
