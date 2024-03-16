@@ -10,6 +10,13 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
+      - name: 'Create env file'
+        run: |
+          touch .env
+          echo VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }} >> .env
+          echo VITE_SUPABASE_API_KEY=${{ secrets.VITE_SUPABASE_API_KEY }} >> .env
+          cat .env
+
       - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
         run: |
           npm ci
