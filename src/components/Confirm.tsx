@@ -26,15 +26,25 @@ const Confirm = ({
   };
 }) => {
   const dialog = useRef(null);
-  const [timer, setTimer] = useState<{ duration: number; current: number }>();
+  const [timer, setTimer] = useState<{
+    endsAt: Date | null;
+    startedAt: Date | null;
+  }>();
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (duration) {
       const startedAt = new Date(duration.startedAt);
+      const endsAt = new Date(startedAt.getTime() + duration.duration * 1000);
       const now = new Date();
       const diff = now.getTime() - startedAt.getTime();
       const current = Math.floor(diff / 1000);
-      setTimer({ duration: duration.duration, current });
+
+      if (now.getTime() > endsAt.getTime()) {
+        onTimerFinish();
+        return;
+      }
+      setTimer({ endsAt, startedAt });
     }
   }, [duration]);
 
@@ -42,13 +52,20 @@ const Confirm = ({
     let interval;
 
     if (timer) {
-      interval = setInterval(() => {
+      const interval = setInterval(() => {
         setTimer((old) => {
-          if (old && old.current < old.duration) {
-            return { ...old, current: old.current + 0.1 };
-          } else if (dialog.current && old && old.current >= old.duration) {
-            onTimerFinish();
-            setTimer(undefined);
+          if (old && old.startedAt && old.endsAt) {
+            const now = new Date();
+            const diff = now.getTime() - old.startedAt.getTime();
+            const dur = (duration?.duration || 60) * 1000;
+
+            if (now >= old.endsAt) {
+              onTimerFinish();
+              return { ...old, startedAt: null, endsAt: null, ended: true };
+            }
+
+            // Calculate the progress based on the difference between the current time and the start time
+            setProgress((diff / dur) * 100);
           }
           return old;
         });
@@ -95,26 +112,22 @@ const Confirm = ({
       ref={dialog}
     >
       <div className='modal-box relative '>
-        {timer && timer.current < timer.duration && (
+        {timer && timer.startedAt && (
           <progress
             className='progress progress-primary absolute top-0 w-full left-0'
-            value={timer.current}
-            max={timer.duration}
+            value={progress}
+            max={100}
           ></progress>
         )}
         <h1
           className={`bg-neutral absolute left-0 separated roboto-regular uppercase text-center p-3 w-full ${
-            timer && timer.current < timer.duration ? 'top-2' : 'top-0'
+            timer && timer.startedAt ? 'top-2' : 'top-0'
           }`}
         >
           {title}
         </h1>
 
-        <div
-          className={`${
-            timer && timer.current < timer.duration ? 'mt-14' : 'mt-12'
-          }`}
-        >
+        <div className={`${timer && timer.startedAt ? 'mt-14' : 'mt-12'}`}>
           {children}
           <div className='modal-action w-full gap-5'>
             <form
