@@ -455,10 +455,10 @@ const Game = () => {
             {disabled.message}
           </span>
         )}
-        <div className='grid gap-0 relative '>
+        <div className='grid gap-0 relative'>
           {turn?.startedAt && (
             <progress
-              className='progress progress-primary fixed top-0'
+              className='progress progress-primary'
               value={progress}
               max={100}
             ></progress>
