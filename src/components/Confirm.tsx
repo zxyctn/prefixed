@@ -111,7 +111,7 @@ const Confirm = ({
         </h1>
 
         <div
-          className={` ${
+          className={`${
             timer && timer.current < timer.duration ? 'mt-14' : 'mt-12'
           }`}
         >

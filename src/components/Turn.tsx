@@ -30,19 +30,19 @@ const Turn = ({ turn, color }) => {
         </div>
 
         {turn.repeated ? (
-          <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
+          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
             repeated
           </div>
         ) : !turn.word.length && !turn.existent && !turn.accepted ? (
-          <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
+          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
             EXPIRED
           </div>
         ) : !turn.existent && !turn.accepted ? (
-          <div className='uppercase separated text-2xl text-neutral roboto-bold overflow-x-auto'>
+          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
             NONEXISTENT
           </div>
         ) : (
-          <div className='separated uppercase text-2xl overflow-x-auto'>
+          <div className='separated uppercase text-lg overflow-x-auto'>
             {turn.word}
           </div>
         )}

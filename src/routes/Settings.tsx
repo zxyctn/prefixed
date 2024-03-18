@@ -12,7 +12,7 @@ const Settings = () => {
 
   return (
     <div className='p-6 flex flex-col gap-4 h-full'>
-      <h1 className='uppercase separated-min text-2xl'>Settings</h1>
+      <h1 className='uppercase separated-min text-lg'>Settings</h1>
       <div className='grow align-top'>
         <div className='flex justify-between items-center w-full flex-wrap gap-2'>
           <p className='uppercase separated-min'>Theme</p>
