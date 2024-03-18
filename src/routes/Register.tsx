@@ -19,6 +19,8 @@ const Register = () => {
     e.preventDefault();
 
     if (password !== repeatPassword) {
+      console.error('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
@@ -30,6 +32,9 @@ const Register = () => {
     if (error) {
       console.error(error);
       toast.error(error.message);
+    } else {
+      console.log('Verification e-mail sent');
+      toast.success('Verification e-mail sent');
     }
   };
 
