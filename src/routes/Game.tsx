@@ -372,8 +372,8 @@ const Game = () => {
     }
   };
 
-  const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const insertTurn = async () => {
+    if (!disabled.value) {
       setLoading(true);
       const { data: checkWordData, error: checkWordError } = await supabase.rpc(
         'check_word',
@@ -401,6 +401,12 @@ const Game = () => {
         setLoading(false);
         resetStates();
       }
+    }
+  };
+
+  const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      insertTurn();
     } else if (
       (/^[a-zA-Z]$/i.test(e.key) && game!.lang === 'en') ||
       (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && game!.lang === 'az') ||
@@ -420,7 +426,7 @@ const Game = () => {
             <Sliders />
           </button>
         </span>
-        <span className='uppercase separated-min flex justify-center w-full text-2xl'>
+        <span className='uppercase separated-min flex justify-center w-full text-lg'>
           {game?.prefix}
         </span>
         <button onClick={() => showModal('leaveGame')}>
@@ -428,7 +434,7 @@ const Game = () => {
         </button>
       </div>
 
-      <div className='grow flex flex-col gap-5'>
+      <div className='grow flex flex-col gap-3'>
         <AnimatePresence>
           {turns.map((turn) => (
             <Turn
@@ -440,44 +446,52 @@ const Game = () => {
         </AnimatePresence>
       </div>
 
-      {disabled.value && (
-        <span
-          className='uppercase separated-min bg-primary p-2'
-          key={disabled.value ? 1 : 0}
-        >
-          {disabled.message}
-        </span>
-      )}
-      <div className='grid gap-0'>
-        {turn?.startedAt && (
-          <progress
-            className='progress progress-primary'
-            value={progress}
-            max={100}
-          ></progress>
+      <div className='fixed bottom-4 flex w-full flex-col right-0 px-4'>
+        {disabled.value && (
+          <span
+            className='uppercase separated-min bg-primary p-2 text-xs flex w-full'
+            key={disabled.value ? 1 : 0}
+          >
+            {disabled.message}
+          </span>
         )}
+        <div className='grid gap-0 relative '>
+          {turn?.startedAt && (
+            <progress
+              className='progress progress-primary fixed top-0'
+              value={progress}
+              max={100}
+            ></progress>
+          )}
+          <div className=''>
+            <div
+              className={`relative bg-neutral flex items-center px-3 ${
+                disabled.value && 'text-gray-500 brightness-50'
+              }`}
+            >
+              <div
+                className='w-3 h-3 '
+                style={{
+                  background: player ? avatars[player.id] : '#fff',
+                }}
+              ></div>
 
-        <div
-          className={`relative bg-neutral flex items-center px-3 ${
-            disabled.value && 'text-gray-500 brightness-50'
-          }`}
-        >
-          <div
-            className='w-3 h-3 '
-            style={{
-              background: player ? avatars[player.id] : '#fff',
-            }}
-          ></div>
-
-          <input
-            type='text'
-            className='p-3 bg-transparent w-10/12 uppercase separated-min'
-            value={word}
-            onChange={changeHandler}
-            onKeyDown={keystrokeHandler}
-            disabled={disabled.value}
-          />
-          <Send className='absolute right-3 bottom-3 ' size={20} />
+              <input
+                type='text'
+                className='p-3 bg-transparent w-10/12 uppercase separated-min'
+                value={word}
+                onChange={changeHandler}
+                onKeyDown={keystrokeHandler}
+                disabled={disabled.value}
+              />
+              <Send
+                className={`absolute right-3 bottom-3 cursor-pointer
+                ${disabled.value ? ' btn-disabled' : ''}`}
+                onClick={insertTurn}
+                size={20}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -489,7 +503,7 @@ const Game = () => {
         onConfirm={onStartPoll}
         onCancel={onCancelStartPoll}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
           {word}
         </h1>
       </Confirm>
@@ -504,7 +518,7 @@ const Game = () => {
         onTimerFinish={onCancelPoll}
         duration={timer}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
           {notExists?.word}
         </h1>
       </Confirm>
@@ -517,7 +531,7 @@ const Game = () => {
         onConfirm={onConfirmLeave}
         onCancel={onCancelLeave}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-2xl'>
+        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
           Leave the game?
         </h1>
       </Confirm>
