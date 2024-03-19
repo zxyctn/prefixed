@@ -177,7 +177,6 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           async (payload) => {
-            // setTimeout(() => {
             setTurns((old) =>
               [
                 ...old,
@@ -192,7 +191,6 @@ const Game = () => {
                 },
               ].slice(-10)
             );
-            // }, 5000);
           }
         )
         .on(
@@ -226,7 +224,7 @@ const Game = () => {
                 word: payload.new.content,
                 id: payload.new.id,
               });
-              setTimer({ duration: 60, startedAt: new Date() });
+              setTimer({ duration: 30, startedAt: new Date() });
               showModal('notExistsPoll');
             }
           }
@@ -314,40 +312,27 @@ const Game = () => {
     hideModal('startPoll');
   };
 
-  const onConfirmPoll = async () => {
-    setLoading(true);
-    let { data, error } = await supabase.rpc('increment_vote', {
-      vote_id: notExists?.id,
-      vote_type: 'yes',
-    });
-    setLoading(false);
-    if (error) {
-      console.error(error);
-      toast.error(error.message);
-    }
-
-    hideModal('notExistsPoll');
-  };
-
-  const onCancelPoll = async () => {
+  const onPollResponse = async (vote: 'no' | 'yes') => {
     if (notExists && !sent) {
       setSent(true);
-
       setLoading(true);
+
       let { data, error } = await supabase.rpc('increment_vote', {
         vote_id: notExists?.id,
-        vote_type: 'no',
+        vote_type: vote,
       });
-      setLoading(false);
 
       if (error) {
         console.error(error);
         toast.error(error.message);
+      } else {
+        toast.success(`Voted ${vote}`);
       }
 
       hideModal('notExistsPoll');
       setNotExists(undefined);
       setSent(false);
+      setLoading(false);
     }
   };
 
@@ -513,9 +498,9 @@ const Game = () => {
         title='Exists?'
         confirmButtonText='Yes'
         cancelButtonText='No'
-        onConfirm={onConfirmPoll}
-        onCancel={onCancelPoll}
-        onTimerFinish={onCancelPoll}
+        onConfirm={() => onPollResponse('yes')}
+        onCancel={() => onPollResponse('no')}
+        onTimerFinish={() => onPollResponse('no')}
         duration={timer}
       >
         <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
