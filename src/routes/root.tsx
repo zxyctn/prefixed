@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { createClient } from '@supabase/supabase-js';
+import { themeChange } from 'theme-change';
 
 import Navigation from '../components/Navigation';
 import { currentSession, currentUser, isLoading } from '../stores';
@@ -21,6 +22,8 @@ const Root = ({ page, setPage }) => {
   const setPlayer = useSetRecoilState(currentUser);
 
   useEffect(() => {
+    themeChange(false);
+
     setLoading(true);
     supabase.auth
       .getSession()

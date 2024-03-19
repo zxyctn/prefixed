@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { themeChange } from 'theme-change';
 
 import Game from './routes/Game';
 import Root from './routes/root';
@@ -61,10 +60,6 @@ const App = () => {
       ],
     },
   ]);
-
-  useEffect(() => {
-    themeChange(false);
-  }, []);
 
   return <RouterProvider router={router} />;
 };
