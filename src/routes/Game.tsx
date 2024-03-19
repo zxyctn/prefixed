@@ -121,7 +121,7 @@ const Game = () => {
   }, [id, supabase, player]);
 
   useEffect(() => {
-    if (turn && turn?.startedAt && turn.endsAt && !turn.ended) {
+    if (subscribed && turn && turn?.startedAt && turn.endsAt && !turn.ended) {
       const interval = setInterval(() => {
         setTurn((old) => {
           if (old && old.startedAt) {
@@ -162,7 +162,7 @@ const Game = () => {
       clearTimeout(expirationTimeout);
       clearInterval(expirationInterval);
     };
-  }, [turn]);
+  }, [turn, subscribed]);
 
   useEffect(() => {
     if (turn !== null && !subscribed) {
