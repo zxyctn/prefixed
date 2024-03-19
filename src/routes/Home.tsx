@@ -2,33 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { useSetRecoilState } from 'recoil';
+import { isLoading } from '../stores';
 
 const Home = () => {
   const supabase: SupabaseClient = useOutletContext();
   const [games, setGames] = useState<any>([]);
-
-  const handler = async (data) => {
-    console.log('data', data);  
-    // const gamesData = await Promise.all(
-    //   data!.map(async (game) => {
-    //     const { data: gamePlayersData, error } = await supabase
-    //       .from('game_players')
-    //       .select('game_id')
-    //       .eq('game_id', game.id);
-
-    //     return {
-    //       id: game.id,
-    //       lang: game.lang,
-    //       prefix: game.prefix,
-    //       number_of_players: game.number_of_players,
-    //       joined_players: gamePlayersData?.length,
-    //     };
-    //   })
-    // );
-  };
+  const setLoading = useSetRecoilState(isLoading);
 
   useEffect(() => {
     const getGames = async () => {
+      setLoading(true);
       // TODO: Filter games that don't have maximum number of players reached
       const { data, error } = await supabase
         .from('game')
@@ -57,6 +41,7 @@ const Home = () => {
       );
 
       setGames(gamesData);
+      setLoading(false);
     };
 
     getGames();
@@ -72,7 +57,9 @@ const Home = () => {
         table: 'game',
         filter: 'state=eq.not_started',
       },
-      handler
+      (payload) => {
+        console.log('Game created', payload);
+      }
     )
     .subscribe();
 
@@ -95,21 +82,22 @@ const Home = () => {
         </thead>
 
         <tbody className='no-scrollbar'>
-          {games.map((game) => (
-            <tr className='uppercase text-center' key={game.id}>
-              <th className=''>
-                <div className='separated'>{game.lang}</div>
-              </th>
-              <td className=''>
-                <div className='separated'>{game.prefix}</div>
-              </td>
-              <td className=''>
-                <div className='separated'>
-                  {game.joined_players}/{game.number_of_players}
-                </div>
-              </td>
-            </tr>
-          ))}
+          {games &&
+            games.map((game) => (
+              <tr className='uppercase text-center' key={game.id}>
+                <th className=''>
+                  <div className='separated'>{game.lang}</div>
+                </th>
+                <td className=''>
+                  <div className='separated'>{game.prefix}</div>
+                </td>
+                <td className=''>
+                  <div className='separated'>
+                    {game.joined_players}/{game.number_of_players}
+                  </div>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
