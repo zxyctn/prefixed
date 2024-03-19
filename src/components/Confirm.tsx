@@ -29,6 +29,7 @@ const Confirm = ({
   const [timer, setTimer] = useState<{
     endsAt: Date | null;
     startedAt: Date | null;
+    ended: null | boolean;
   }>();
   const [progress, setProgress] = useState(0);
 
@@ -37,21 +38,17 @@ const Confirm = ({
       const startedAt = new Date(duration.startedAt);
       const endsAt = new Date(startedAt.getTime() + duration.duration * 1000);
       const now = new Date();
-      const diff = now.getTime() - startedAt.getTime();
-      const current = Math.floor(diff / 1000);
 
       if (now.getTime() > endsAt.getTime()) {
-        onTimerFinish();
         return;
       }
-      setTimer({ endsAt, startedAt });
+
+      setTimer({ endsAt, startedAt, ended: false });
     }
   }, [duration]);
 
   useEffect(() => {
-    let interval;
-
-    if (timer) {
+    if (timer && timer.startedAt) {
       const interval = setInterval(() => {
         setTimer((old) => {
           if (old && old.startedAt && old.endsAt) {
@@ -60,8 +57,7 @@ const Confirm = ({
             const dur = (duration?.duration || 60) * 1000;
 
             if (now >= old.endsAt) {
-              onTimerFinish();
-              return { ...old, startedAt: null, endsAt: null, ended: true };
+              return { startedAt: null, endsAt: null, ended: false };
             }
 
             // Calculate the progress based on the difference between the current time and the start time
@@ -72,13 +68,13 @@ const Confirm = ({
       }, 1);
 
       return () => clearInterval(interval);
+    } else if (timer && !timer.startedAt && !timer.endsAt && !timer.ended) {
+      onTimerFinish();
+      setProgress(0);
+      setTimer(undefined);
     }
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    return () => {};
   }, [timer]);
 
   useEffect(() => {
