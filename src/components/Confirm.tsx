@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+
 import Button from './Button';
+import Separated from './Separated';
 
 const Confirm = ({
   id,
@@ -116,11 +118,11 @@ const Confirm = ({
           ></progress>
         )}
         <h1
-          className={`bg-neutral absolute left-0 separated roboto-regular uppercase text-center p-3 w-full ${
+          className={`bg-neutral absolute left-0 roboto-regular uppercase text-center p-3 w-full ${
             timer && timer.startedAt ? 'top-2' : 'top-0'
           }`}
         >
-          {title}
+          <Separated content={title} />
         </h1>
 
         <div className={`${timer && timer.startedAt ? 'mt-14' : 'mt-12'}`}>

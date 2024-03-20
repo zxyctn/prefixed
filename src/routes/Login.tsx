@@ -64,7 +64,7 @@ const Login = () => {
         <button
           type='button'
           onClick={() => navigate('/prefixed/forgot-password')}
-          className='uppercase separated-min md:separated font-medium'
+          className='uppercase font-medium'
         >
           Forgot password?
         </button>

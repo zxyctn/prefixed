@@ -1,5 +1,6 @@
 import React from 'react';
 
+import Separated from './Separated';
 import type { ButtonProps } from '../types';
 
 const Button = ({
@@ -10,11 +11,11 @@ const Button = ({
 }: ButtonProps) => {
   return (
     <button
-      className={`btn roboto-medium separated-min md:separated uppercase text-lg p-8 h-[70px] md:h-[80px] items-center content-center ${className}`}
+      className={`btn roboto-medium uppercase text-lg p-8 h-[70px] md:h-[80px] items-center content-center ${className}`}
       onClick={onClick}
       type={type}
     >
-      {children}
+      <Separated content={children} className=' separated-min md:separated ' />
     </button>
   );
 };

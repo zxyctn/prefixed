@@ -5,6 +5,7 @@ import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { currentUser, isLoading } from '../stores';
+import Separated from '../components/Separated';
 
 const Home = () => {
   const supabase: SupabaseClient = useOutletContext();
@@ -94,16 +95,16 @@ const Home = () => {
   // TODO: When clicked on row open up modal for joining the game
   return (
     <div className='overflow-x-auto no-scrollbar'>
-      <table className='table table-lg table-pin-cols'>
-        <thead>
+      <table className='table table-lg table-pin-cols m-auto'>
+        <thead className=''>
           <tr>
-            <th>
+            <th className='w-1/3'>
               <Globe className='m-auto text-secondary' />
             </th>
-            <th>
+            <th className='w-1/3'>
               <Hash className='m-auto text-secondary' />
             </th>
-            <th>
+            <th className='w-1/3'>
               <Users className='m-auto text-secondary' />
             </th>
           </tr>
@@ -118,15 +119,15 @@ const Home = () => {
                 onClick={() => handleJoin(game)}
               >
                 <th className=''>
-                  <div className='separated'>{game.lang}</div>
+                  <Separated content={game.lang} />
                 </th>
                 <td className=''>
-                  <div className='separated'>{game.prefix}</div>
+                  <Separated content={game.prefix} />
                 </td>
                 <td className=''>
-                  <div className='separated'>
-                    {game.joined_players}/{game.number_of_players}
-                  </div>
+                  <Separated
+                    content={`${game.joined_players}/${game.number_of_players}`}
+                  />
                 </td>
               </tr>
             ))}

@@ -10,6 +10,7 @@ import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
+import Separated from '../components/Separated';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -413,8 +414,8 @@ const Game = () => {
             <Sliders />
           </button>
         </span>
-        <span className='uppercase separated-min flex justify-center w-full text-lg'>
-          {game?.prefix}
+        <span className='uppercase flex justify-center w-full text-lg'>
+          <Separated content={game?.prefix} className='separated-min' />
         </span>
         <button onClick={() => showModal('leaveGame')}>
           <X />
@@ -490,8 +491,8 @@ const Game = () => {
         onConfirm={onStartPoll}
         onCancel={onCancelStartPoll}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
-          {word}
+        <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
+          <Separated content={word} />
         </h1>
       </Confirm>
 
@@ -505,8 +506,8 @@ const Game = () => {
         onTimerFinish={() => onPollResponse('no')}
         duration={timer}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
-          {notExists?.word}
+        <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
+          <Separated content={notExists?.word} />
         </h1>
       </Confirm>
 
@@ -519,7 +520,7 @@ const Game = () => {
         onCancel={onCancelLeave}
       >
         <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
-          Leave the game?
+          <Separated content='Leave the game?' />
         </h1>
       </Confirm>
     </div>
