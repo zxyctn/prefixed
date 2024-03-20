@@ -519,7 +519,7 @@ const Game = () => {
         onConfirm={onConfirmLeave}
         onCancel={onCancelLeave}
       >
-        <h1 className='separated roboto-bold uppercase text-center text-md lg:text-lg'>
+        <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
           <Separated content='Leave the game?' />
         </h1>
       </Confirm>

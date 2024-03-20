@@ -2,7 +2,7 @@ import React from 'react';
 
 const Separated = ({ content, className = '' }) => {
   return (
-    <div className='flex justify-center'>
+    <div className='m-auto'>
       <span className={className.length ? className : 'separated'}>
         {content && content.slice(0, -1)}
       </span>

@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import InputField from '../components/InputField';
 import Button from '../components/Button';
+import Separated from '../components/Separated';
 
 const Login = () => {
   const supabase: SupabaseClient = useOutletContext();
@@ -66,7 +67,7 @@ const Login = () => {
           onClick={() => navigate('/prefixed/forgot-password')}
           className='uppercase font-medium'
         >
-          Forgot password?
+          <Separated content='Forgot password?' />
         </button>
       </form>
     </div>
