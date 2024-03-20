@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import { Send, Sliders, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { useOutletContext, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
 import Confirm from '../components/Confirm';
@@ -14,6 +14,7 @@ import type { CurrentTurnType, GameTurnType } from '../types';
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
   const supabase: SupabaseClient = useOutletContext() || null;
+  const navigate = useNavigate();
 
   const player = useRecoilValue(currentUser) || null;
   const [game, setGame] = useRecoilState(currentGame);
@@ -339,6 +340,7 @@ const Game = () => {
   const onConfirmLeave = async () => {
     // TODO: Leave the game by deleting user's id from game_players
     hideModal('leaveGame');
+    navigate('/prefixed/');
   };
 
   const onCancelLeave = async () => {
