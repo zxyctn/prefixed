@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { User, Key } from 'react-feather';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -20,6 +21,13 @@ const Login = () => {
       email: email,
       password: password,
     });
+
+    if (error) {
+      console.error(`Error logging in: ${error.message}`);
+      toast.error(`Error logging in: ${error.message}`);
+    } else {
+      toast.success('Logged in successfully');
+    }
   };
 
   const onEmailChange = (e) => {
