@@ -1,14 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { useSetRecoilState } from 'recoil';
-import { isLoading } from '../stores';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { currentUser, isLoading } from '../stores';
 
 const Home = () => {
   const supabase: SupabaseClient = useOutletContext();
-  const [games, setGames] = useState<any>([]);
+  const navigate = useNavigate();
   const setLoading = useSetRecoilState(isLoading);
+  const player = useRecoilValue(currentUser);
+
+  const [games, setGames] = useState<any>([]);
+
+  const handleJoin = async (game) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('game_players')
+      .select()
+      .eq('game_id', game.id)
+      .eq('player_id', player?.id);
+
+    if (error) {
+      console.error('Error joining game', error);
+      toast.error('Error joining game');
+      setLoading(false);
+      return;
+    } else if (data.length > 0) {
+      console.log('Joined game', data);
+      toast.success('Joined game');
+      navigate(`/prefixed/game/${game.id}`);
+    } else {
+      console.error('Error joining game');
+      toast.error('Error joining game');
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     const getGames = async () => {
@@ -84,7 +112,11 @@ const Home = () => {
         <tbody className='no-scrollbar'>
           {games &&
             games.map((game) => (
-              <tr className='uppercase text-center' key={game.id}>
+              <tr
+                className='uppercase text-center cursor-pointer'
+                key={game.id}
+                onClick={() => handleJoin(game)}
+              >
                 <th className=''>
                   <div className='separated'>{game.lang}</div>
                 </th>
