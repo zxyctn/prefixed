@@ -8,9 +8,9 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 
 import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
+import Separated from '../components/Separated';
 import { currentGame, currentUser, isLoading } from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
-import Separated from '../components/Separated';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -38,6 +38,7 @@ const Game = () => {
   const [sent, setSent] = useState<boolean>(false);
   const [notExists, setNotExists] = useState<{ id: number; word: string }>();
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
+  const [isReady, setIsReady] = useState<boolean>(false);
 
   const resetStates = () => {
     setWord(game?.prefix || '');
@@ -67,6 +68,145 @@ const Game = () => {
     setLoading(false);
   };
 
+  const showModal = (modalId) => {
+    (document.getElementById(modalId) as HTMLDialogElement).showModal();
+  };
+
+  const hideModal = (modalId) => {
+    (document.getElementById(modalId) as HTMLDialogElement).close();
+  };
+
+  const onStartPoll = async () => {
+    resetStates();
+    setDisabled({ value: true, message: 'Poll in progress' });
+    setLoading(true);
+    await supabase.from('game_votes').insert([
+      {
+        game_id: id,
+        content: word,
+        vote_type: 'NOT_EXISTS',
+        result: null,
+        player_id: player?.id,
+        yes: 1,
+      },
+    ]);
+    setLoading(false);
+  };
+
+  const onCancelStartPoll = async () => {
+    hideModal('startPoll');
+  };
+
+  const onPollResponse = async (vote: 'no' | 'yes') => {
+    if (notExists && !sent) {
+      setSent(true);
+      setLoading(true);
+
+      let { data, error } = await supabase.rpc('increment_vote', {
+        vote_id: notExists?.id,
+        vote_type: vote,
+      });
+
+      if (error) {
+        console.error(error);
+        toast.error(error.message);
+      } else {
+        toast.success(`Voted ${vote}`);
+      }
+
+      hideModal('notExistsPoll');
+      setNotExists(undefined);
+      setSent(false);
+      setLoading(false);
+    }
+  };
+
+  const onConfirmLeave = async () => {
+    // TODO: Leave the game by deleting user's id from game_players
+    hideModal('leaveGame');
+    navigate('/prefixed/');
+  };
+
+  const onCancelLeave = async () => {
+    hideModal('leaveGame');
+  };
+
+  const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (
+      game &&
+      e.target.value.length > game.prefix.length &&
+      e.target.value.startsWith(game.prefix)
+    ) {
+      setWord(e.target.value);
+    } else {
+      setWord(game?.prefix || '');
+    }
+  };
+
+  const insertTurn = async () => {
+    if (!disabled.value) {
+      setLoading(true);
+      const { data: checkWordData, error: checkWordError } = await supabase.rpc(
+        'check_word',
+        {
+          param_game_id: id,
+          param_player_id: player?.id,
+          param_word: word,
+        }
+      );
+      setLoading(false);
+
+      const { repeated, existence } = checkWordData;
+
+      if (!existence) {
+        showModal('startPoll');
+      } else {
+        setLoading(true);
+        await supabase.rpc('insert_new_turn', {
+          g_id: id,
+          word: word,
+          existent: existence,
+          repeated: repeated,
+          accepted: existence,
+        });
+        setLoading(false);
+        resetStates();
+      }
+    }
+  };
+
+  const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      insertTurn();
+    } else if (
+      (/^[a-zA-Z\-]$/i.test(e.key) && game!.lang === 'en') ||
+      (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş\-]$/i.test(e.key) && game!.lang === 'az') ||
+      e.key === 'Backspace'
+    ) {
+      // Do nothing
+    } else {
+      e.preventDefault();
+    }
+  };
+
+  const toggleIsReady = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('game_players')
+      .update({
+        ready: !isReady,
+      })
+      .eq('player_id', player?.id);
+
+    if (error) {
+      console.error(error);
+      toast.error(error.message);
+    } else {
+      setLoading(false);
+      setIsReady((old) => !old);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       if (id && supabase && player) {
@@ -86,6 +226,8 @@ const Game = () => {
                 value: p.turn !== data.turn,
                 message: p.turn !== data.turn ? 'Wait for your turn' : '',
               });
+
+              setIsReady(p.ready);
 
               setTurn({
                 value: p.turn,
@@ -285,127 +427,6 @@ const Game = () => {
     };
   }, [id, player, game, turn]);
 
-  const showModal = (modalId) => {
-    (document.getElementById(modalId) as HTMLDialogElement).showModal();
-  };
-
-  const hideModal = (modalId) => {
-    (document.getElementById(modalId) as HTMLDialogElement).close();
-  };
-
-  const onStartPoll = async () => {
-    resetStates();
-    setDisabled({ value: true, message: 'Poll in progress' });
-    setLoading(true);
-    await supabase.from('game_votes').insert([
-      {
-        game_id: id,
-        content: word,
-        vote_type: 'NOT_EXISTS',
-        result: null,
-        player_id: player?.id,
-        yes: 1,
-      },
-    ]);
-    setLoading(false);
-  };
-
-  const onCancelStartPoll = async () => {
-    hideModal('startPoll');
-  };
-
-  const onPollResponse = async (vote: 'no' | 'yes') => {
-    if (notExists && !sent) {
-      setSent(true);
-      setLoading(true);
-
-      let { data, error } = await supabase.rpc('increment_vote', {
-        vote_id: notExists?.id,
-        vote_type: vote,
-      });
-
-      if (error) {
-        console.error(error);
-        toast.error(error.message);
-      } else {
-        toast.success(`Voted ${vote}`);
-      }
-
-      hideModal('notExistsPoll');
-      setNotExists(undefined);
-      setSent(false);
-      setLoading(false);
-    }
-  };
-
-  const onConfirmLeave = async () => {
-    // TODO: Leave the game by deleting user's id from game_players
-    hideModal('leaveGame');
-    navigate('/prefixed/');
-  };
-
-  const onCancelLeave = async () => {
-    hideModal('leaveGame');
-  };
-
-  const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (
-      game &&
-      e.target.value.length > game.prefix.length &&
-      e.target.value.startsWith(game.prefix)
-    ) {
-      setWord(e.target.value);
-    } else {
-      setWord(game?.prefix || '');
-    }
-  };
-
-  const insertTurn = async () => {
-    if (!disabled.value) {
-      setLoading(true);
-      const { data: checkWordData, error: checkWordError } = await supabase.rpc(
-        'check_word',
-        {
-          param_game_id: id,
-          param_player_id: player?.id,
-          param_word: word,
-        }
-      );
-      setLoading(false);
-
-      const { repeated, existence } = checkWordData;
-
-      if (!existence) {
-        showModal('startPoll');
-      } else {
-        setLoading(true);
-        await supabase.rpc('insert_new_turn', {
-          g_id: id,
-          word: word,
-          existent: existence,
-          repeated: repeated,
-          accepted: existence,
-        });
-        setLoading(false);
-        resetStates();
-      }
-    }
-  };
-
-  const keystrokeHandler = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      insertTurn();
-    } else if (
-      (/^[a-zA-Z\-]$/i.test(e.key) && game!.lang === 'en') ||
-      (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş\-]$/i.test(e.key) && game!.lang === 'az') ||
-      e.key === 'Backspace'
-    ) {
-      // Do nothing
-    } else {
-      e.preventDefault();
-    }
-  };
-
   return (
     <div className='h-full w-full p-4 flex flex-col'>
       <div className='flex justify-between pb-4 items-center'>
@@ -435,52 +456,68 @@ const Game = () => {
       </div>
 
       <div className='fixed bottom-4 flex w-full flex-col right-0 px-4'>
-        {disabled.value && (
-          <span
-            className='uppercase separated-min bg-primary p-2 text-xs flex w-full'
-            key={disabled.value ? 1 : 0}
+        {game?.state !== 'in_progress' ? (
+          <button
+            onClick={toggleIsReady}
+            className={`btn uppercase ${
+              isReady ? 'btn-secondary' : 'btn-primary'
+            }`}
           >
-            {disabled.message}
-          </span>
-        )}
-        <div className='grid gap-0 relative'>
-          {turn?.startedAt && (
-            <progress
-              className='progress progress-primary'
-              value={progress}
-              max={100}
-            ></progress>
-          )}
-          <div className=''>
-            <div
-              className={`relative bg-neutral flex items-center px-3 ${
-                disabled.value && 'text-gray-500 brightness-50'
-              }`}
-            >
-              <div
-                className='w-3 h-3 '
-                style={{
-                  background: player ? avatars[player.id] : '#fff',
-                }}
-              ></div>
+            <Separated
+              content={`Ready${!isReady ? '?' : ''}`}
+              className='separated-min'
+            />
+          </button>
+        ) : (
+          <div>
+            {disabled.value && (
+              <span
+                className='uppercase separated-min bg-primary p-2 text-xs flex w-full'
+                key={disabled.value ? 1 : 0}
+              >
+                {disabled.message}
+              </span>
+            )}
+            <div className='grid gap-0 relative'>
+              {turn?.startedAt && (
+                <progress
+                  className='progress progress-primary'
+                  value={progress}
+                  max={100}
+                ></progress>
+              )}
+              <div className=''>
+                <div
+                  className={`relative bg-neutral flex items-center px-3 ${
+                    disabled.value && 'text-gray-500 brightness-50'
+                  }`}
+                >
+                  <div
+                    className='w-3 h-3 '
+                    style={{
+                      background: player ? avatars[player.id] : '#fff',
+                    }}
+                  ></div>
 
-              <input
-                type='text'
-                className='p-3 bg-transparent w-10/12 uppercase separated-min'
-                value={word}
-                onChange={changeHandler}
-                onKeyDown={keystrokeHandler}
-                disabled={disabled.value}
-              />
-              <Send
-                className={`absolute right-3 bottom-3 cursor-pointer
+                  <input
+                    type='text'
+                    className='p-3 bg-transparent w-10/12 uppercase separated-min'
+                    value={word}
+                    onChange={changeHandler}
+                    onKeyDown={keystrokeHandler}
+                    disabled={disabled.value}
+                  />
+                  <Send
+                    className={`absolute right-3 bottom-3 cursor-pointer
                 ${disabled.value ? ' btn-disabled' : ''}`}
-                onClick={insertTurn}
-                size={20}
-              />
+                    onClick={insertTurn}
+                    size={20}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Confirm

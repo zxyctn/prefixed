@@ -15,7 +15,7 @@ const Button = ({
       onClick={onClick}
       type={type}
     >
-      <Separated content={children} className=' separated-min md:separated ' />
+      <Separated content={children} className='separated-min md:separated' />
     </button>
   );
 };
