@@ -88,28 +88,34 @@ const Root = ({ page, setPage }) => {
   return (
     <div className='h-screen flex flex-col'>
       <Toaster />
-      {gameInProgress && page !== `/prefixed/game/${gameInProgress}` && (
-        <div className='w-full'>
-          <div className='bg-neutral text-center p-1 text-xs'>
-            <Separated className='separated-min' content={'game in progress'} />
-          </div>
+      {session &&
+        player &&
+        gameInProgress &&
+        page !== `/prefixed/game/${gameInProgress}` && (
+          <div className='w-full'>
+            <div className='bg-neutral text-center p-1 text-xs'>
+              <Separated
+                className='separated-min'
+                content={'game in progress'}
+              />
+            </div>
 
-          <div className='flex w-full'>
-            <button
-              className='btn uppercase separated-min btn-primary grow'
-              onClick={() => navigate(`/prefixed/game/${gameInProgress}`)}
-            >
-              Join
-            </button>
-            <button
-              className='btn uppercase separated-min btn-secondary grow'
-              onClick={() => {}}
-            >
-              Leave
-            </button>
+            <div className='flex w-full'>
+              <button
+                className='btn uppercase separated-min btn-primary grow'
+                onClick={() => navigate(`/prefixed/game/${gameInProgress}`)}
+              >
+                Join
+              </button>
+              <button
+                className='btn uppercase separated-min btn-secondary grow'
+                onClick={() => {}}
+              >
+                Leave
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {loading && (
         <div className='fixed w-full h-full flex justify-center items-center z-10'>

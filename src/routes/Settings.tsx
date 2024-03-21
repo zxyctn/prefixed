@@ -1,14 +1,26 @@
 import React, { useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { LogOut } from 'react-feather';
 import { useOutletContext } from 'react-router-dom';
 import { themeChange } from 'theme-change';
+import { useSetRecoilState } from 'recoil';
+
+import { currentUser } from '../stores';
 
 const Settings = () => {
   const supabase: SupabaseClient = useOutletContext();
+  const setPlayer = useSetRecoilState(currentUser);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error logging out:', error.message);
+      toast.error('Error logging out');
+    }
+
+    setPlayer(null);
+    toast.success('Logged out');
   };
 
   useEffect(() => {
