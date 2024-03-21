@@ -10,7 +10,7 @@ import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import Separated from '../components/Separated';
 import { currentGame, currentUser, isLoading } from '../stores';
-import type { CurrentTurnType, GameTurnType } from '../types';
+import type { CurrentTurnType, GameTurnType, GameType } from '../types';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -39,6 +39,9 @@ const Game = () => {
   const [notExists, setNotExists] = useState<{ id: number; word: string }>();
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [playerStates, setPlayerStates] = useState<{ [key: string]: string }>(
+    {}
+  );
 
   const resetStates = () => {
     setWord(game?.prefix || '');
@@ -221,6 +224,11 @@ const Game = () => {
           setWord(data.prefix);
           setTurns(data.turns ? [...data.turns].reverse() : []);
           data.players.forEach((p) => {
+            setPlayerStates((old) => ({
+              ...old,
+              [p.player_id]: p.ready,
+            }));
+
             if (p.player_id === player.id) {
               setDisabled({
                 value: p.turn !== data.turn,
@@ -273,6 +281,8 @@ const Game = () => {
             const diff = now.getTime() - old.startedAt.getTime();
             const duration = (game?.turn_duration || 60) * 1000;
 
+            console.log(diff);
+
             if (now >= turn.endsAt!) {
               return { ...old, startedAt: null, endsAt: null, ended: true };
             }
@@ -315,6 +325,21 @@ const Game = () => {
         .on(
           'postgres_changes',
           {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game_players',
+            filter: `player_id=neq.${player?.id}`,
+          },
+          async (payload) => {
+            setPlayerStates((old) => ({
+              ...old,
+              [payload.new.player_id]: payload.new.ready,
+            }));
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
             event: 'INSERT',
             schema: 'public',
             table: 'game_turns',
@@ -351,6 +376,10 @@ const Game = () => {
               message:
                 payload.new.turn !== turn?.value ? 'Wait for your turn' : '',
             });
+            setGame((old) => ({
+              ...old!,
+              state: payload.new.state,
+            }));
             resetStates();
           }
         )
@@ -445,13 +474,25 @@ const Game = () => {
 
       <div className='grow flex flex-col gap-3'>
         <AnimatePresence>
-          {turns.map((turn) => (
-            <Turn
-              turn={turn}
-              color={avatars[turn?.player_id] || 'fff'}
-              key={turn.created_at}
-            />
-          ))}
+          {game?.state === 'in_progress' &&
+            turns.map((turn) => (
+              <Turn
+                turn={turn}
+                color={avatars[turn?.player_id] || 'fff'}
+                key={turn.created_at}
+              />
+            ))}
+
+          {game?.state !== 'in_progress' &&
+            Object.keys(playerStates)
+              .filter((p) => p !== player?.id)
+              .map((p) => (
+                <Turn
+                  turn={playerStates[p] ? 'Ready' : 'Not ready'}
+                  color={avatars[p] || 'fff'}
+                  key={`state-${p}`}
+                />
+              ))}
         </AnimatePresence>
       </div>
 

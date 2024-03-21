@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, usePresence } from 'framer-motion';
+import type { GameTurnType } from '../types';
 
 const Turn = ({ turn, color }) => {
   const [isPresent, safeToRemove] = usePresence();
@@ -29,21 +30,27 @@ const Turn = ({ turn, color }) => {
           ></div>
         </div>
 
-        {turn.repeated ? (
-          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
-            repeated
-          </div>
-        ) : !turn.word.length && !turn.existent && !turn.accepted ? (
-          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
-            EXPIRED
-          </div>
-        ) : !turn.existent && !turn.accepted ? (
-          <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
-            NONEXISTENT
-          </div>
+        {turn.repeated !== undefined && turn.existent !== undefined ? (
+          turn.repeated ? (
+            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+              repeated
+            </div>
+          ) : !turn.word.length && !turn.existent && !turn.accepted ? (
+            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+              EXPIRED
+            </div>
+          ) : !turn.existent && !turn.accepted ? (
+            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+              NONEXISTENT
+            </div>
+          ) : (
+            <div className='separated uppercase text-lg overflow-x-auto'>
+              {turn.word}
+            </div>
+          )
         ) : (
-          <div className='separated uppercase text-lg overflow-x-auto'>
-            {turn.word}
+          <div className='separated uppercase text-lg overflow-x-auto whitespace-nowrap'>
+            {turn}
           </div>
         )}
       </div>
