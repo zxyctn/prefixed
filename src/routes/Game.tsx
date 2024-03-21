@@ -281,8 +281,6 @@ const Game = () => {
             const diff = now.getTime() - old.startedAt.getTime();
             const duration = (game?.turn_duration || 60) * 1000;
 
-            console.log(diff);
-
             if (now >= turn.endsAt!) {
               return { ...old, startedAt: null, endsAt: null, ended: true };
             }

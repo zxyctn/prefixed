@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { createClient } from '@supabase/supabase-js';
@@ -7,6 +7,8 @@ import { themeChange } from 'theme-change';
 import Navigation from '../components/Navigation';
 import { currentSession, currentUser, isLoading } from '../stores';
 import { Toaster } from 'react-hot-toast';
+import Separated from '../components/Separated';
+import Button from '../components/Button';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -19,7 +21,8 @@ const Root = ({ page, setPage }) => {
 
   const [session, setSession] = useRecoilState(currentSession);
   const [loading, setLoading] = useRecoilState(isLoading);
-  const setPlayer = useSetRecoilState(currentUser);
+  const [player, setPlayer] = useRecoilState(currentUser);
+  const [gameInProgress, setGameInProgress] = useState<number | null>(null);
 
   useEffect(() => {
     themeChange(false);
@@ -68,9 +71,46 @@ const Root = ({ page, setPage }) => {
     setPage(location.pathname);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (session && player) {
+      supabase
+        .from('game_players')
+        .select('game_id')
+        .eq('player_id', player.id)
+        .then(({ data }) => {
+          if (data && data.length) {
+            setGameInProgress(data[0].game_id);
+          }
+        });
+    }
+  }, [player]);
+
   return (
     <div className='h-screen flex flex-col'>
       <Toaster />
+      {gameInProgress && page !== `/prefixed/game/${gameInProgress}` && (
+        <div className='w-full'>
+          <div className='bg-neutral text-center p-1 text-xs'>
+            <Separated className='separated-min' content={'game in progress'} />
+          </div>
+
+          <div className='flex w-full'>
+            <button
+              className='btn uppercase separated-min btn-primary grow'
+              onClick={() => navigate(`/prefixed/game/${gameInProgress}`)}
+            >
+              Join
+            </button>
+            <button
+              className='btn uppercase separated-min btn-secondary grow'
+              onClick={() => {}}
+            >
+              Leave
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className='fixed w-full h-full flex justify-center items-center z-10'>
           <div className='blur absolute'></div>
