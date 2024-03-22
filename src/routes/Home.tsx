@@ -21,22 +21,17 @@ const Home = () => {
       p_unique_id: game.unique_id,
     });
 
-    console.log(game)
-
     if (error) {
       console.error('Error joining game: ', error);
       toast.error(`Error joining game: ${error.message}`);
       setLoading(false);
       return;
-    } else if (data.length > 0) {
-      console.log('Joined game', data);
-      toast.success('Joined game');
-      navigate(`/prefixed/game/${game.id}`);
-    } else {
-      console.error('Error joining game');
-      toast.error('Error joining game');
     }
+
     setLoading(false);
+    console.log('Joined game', data);
+    toast.success('Joined game');
+    navigate(`/prefixed/game/${game.id}`);
   };
 
   useEffect(() => {
