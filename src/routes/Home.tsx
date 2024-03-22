@@ -21,6 +21,8 @@ const Home = () => {
       p_unique_id: game.unique_id,
     });
 
+    console.log(game)
+
     if (error) {
       console.error('Error joining game: ', error);
       toast.error(`Error joining game: ${error.message}`);
@@ -43,7 +45,7 @@ const Home = () => {
       // TODO: Filter games that don't have maximum number of players reached
       const { data, error } = await supabase
         .from('game')
-        .select()
+        .select('*')
         .eq('state', 'not_started');
 
       // not_started means the game is still open for joining
@@ -63,6 +65,7 @@ const Home = () => {
             prefix: game.prefix,
             number_of_players: game.number_of_players,
             joined_players: gamePlayersData?.length,
+            unique_id: game.unique_id,
           };
         })
       );
