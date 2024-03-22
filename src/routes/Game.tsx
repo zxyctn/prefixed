@@ -10,7 +10,7 @@ import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import Separated from '../components/Separated';
 import { currentGame, currentUser, isLoading } from '../stores';
-import type { CurrentTurnType, GameTurnType, GameType } from '../types';
+import type { CurrentTurnType, GameTurnType } from '../types';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -208,6 +208,11 @@ const Game = () => {
       setLoading(false);
       setIsReady((old) => !old);
     }
+  };
+
+  const copyIdToClipboard = async () => {
+    navigator.clipboard.writeText(game?.unique_id || '');
+    toast.success('Copied to clipboard');
   };
 
   useEffect(() => {
@@ -481,7 +486,7 @@ const Game = () => {
               />
             ))}
 
-          {game?.state !== 'in_progress' &&
+          {game?.state === 'not_ready' &&
             Object.keys(playerStates)
               .filter((p) => p !== player?.id)
               .map((p) => (
@@ -491,11 +496,22 @@ const Game = () => {
                   key={`state-${p}`}
                 />
               ))}
+
+          {game?.state === 'not_started' &&
+            Object.keys(playerStates)
+              .filter((p) => p !== player?.id)
+              .map((p) => (
+                <Turn
+                  turn='Joined'
+                  color={avatars[p] || 'fff'}
+                  key={`state-${p}`}
+                />
+              ))}
         </AnimatePresence>
       </div>
 
       <div className='fixed bottom-4 flex w-full flex-col right-0 px-4'>
-        {game?.state !== 'in_progress' ? (
+        {game?.state === 'not_ready' ? (
           <button
             onClick={toggleIsReady}
             className={`btn uppercase ${
@@ -507,7 +523,7 @@ const Game = () => {
               className='separated-min'
             />
           </button>
-        ) : (
+        ) : game?.state === 'in_progress' ? (
           <div>
             {disabled.value && (
               <span
@@ -556,6 +572,13 @@ const Game = () => {
               </div>
             </div>
           </div>
+        ) : (
+          <button
+            onClick={copyIdToClipboard}
+            className='btn btn-secondary uppercase'
+          >
+            <Separated content='Copy ID' className='separated-min' />
+          </button>
         )}
       </div>
 
