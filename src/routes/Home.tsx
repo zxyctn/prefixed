@@ -17,15 +17,13 @@ const Home = () => {
 
   const handleJoin = async (game) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('game_players')
-      .select()
-      .eq('game_id', game.id)
-      .eq('player_id', player?.id);
+    const { data, error } = await supabase.rpc('join_game', {
+      p_unique_id: game.unique_id,
+    });
 
     if (error) {
-      console.error('Error joining game', error);
-      toast.error('Error joining game');
+      console.error('Error joining game: ', error);
+      toast.error(`Error joining game: ${error.message}`);
       setLoading(false);
       return;
     } else if (data.length > 0) {
