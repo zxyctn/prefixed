@@ -35,7 +35,7 @@ const InputField = ({
           className={`bg-transparent p-0 w-full place-self-center uppercase roboto-regular ${className}`}
         />
       ) : (
-        <select className='bg-transparent uppercase flex w-min justify-center items-center'>
+        <select className='bg-transparent uppercase flex w-min justify-center items-center' onChange={onChange}>
           {options.map((o) => (
             <option value={o.value} key={o.value}>{o.label}</option>
           ))}
