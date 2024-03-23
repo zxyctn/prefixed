@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { LogOut } from 'react-feather';
+import { LogOut, User } from 'react-feather';
 import { useOutletContext } from 'react-router-dom';
 import { themeChange } from 'theme-change';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 
+import Separated from '../components/Separated';
 import { currentUser } from '../stores';
 
 const Settings = () => {
   const supabase: SupabaseClient = useOutletContext();
   const setPlayer = useSetRecoilState(currentUser);
+  const player = useRecoilValue(currentUser);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -30,7 +32,7 @@ const Settings = () => {
   return (
     <div className='p-6 flex flex-col gap-4 h-full'>
       <h1 className='uppercase separated-min text-lg'>Settings</h1>
-      <div className='grow align-top'>
+      <div className='grow align-top gap-3 flex flex-col'>
         <div className='flex justify-between items-center w-full flex-wrap gap-2'>
           <p className='uppercase separated-min'>Theme</p>
           <select
@@ -44,12 +46,26 @@ const Settings = () => {
         </div>
       </div>
 
-      <div
-        onClick={signOut}
-        className='uppercase separated-min items-center cursor-pointer align-bottom flex gap-4 text-sm'
-      >
-        <LogOut size={20} />
-        <span>Sign out</span>
+      <div className='dropdown dropdown-top '>
+        <div tabIndex={0} role='button' className=''>
+          <div className='border border-secondary flex justify-between items-center w-full flex-wrap gap-2 p-3 py-3'>
+            <User size={20} />
+            <div className='uppercase font-medium text-xs'>{player?.email}</div>
+          </div>
+        </div>
+        <ul tabIndex={0} className='dropdown-content w-full mb-2'>
+          <div className='btn btn-secondary flex'>
+            <div
+              onClick={signOut}
+              className='grow uppercase separated-min items-center cursor-pointer align-bottom flex gap-4 text-sm'
+            >
+              <LogOut size={20} />
+              <span className='whitespace-nowrap text-right w-full'>
+                Sign out
+              </span>
+            </div>
+          </div>
+        </ul>
       </div>
     </div>
   );
