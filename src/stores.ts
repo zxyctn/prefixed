@@ -22,3 +22,11 @@ export const isLoading = atom<boolean>({
   key: 'isLoading',
   default: false,
 });
+
+export const currentGameState = atom<{ state: string; id: number }>({
+  key: 'currentGameState',
+  default: {
+    state: 'not_started',
+    id: -1,
+  },
+});

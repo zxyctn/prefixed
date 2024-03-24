@@ -5,10 +5,16 @@ import { createClient } from '@supabase/supabase-js';
 import { themeChange } from 'theme-change';
 
 import Navigation from '../components/Navigation';
-import { currentSession, currentUser, isLoading } from '../stores';
-import { Toaster } from 'react-hot-toast';
+import {
+  currentSession,
+  currentUser,
+  currentGameState,
+  isLoading,
+} from '../stores';
+import toast, { Toaster } from 'react-hot-toast';
 import Separated from '../components/Separated';
 import Button from '../components/Button';
+import { leaveGame } from '../shared';
 
 const supabase = createClient(
   `${process.env.VITE_SUPABASE_URL}`,
@@ -22,7 +28,7 @@ const Root = ({ page, setPage }) => {
   const [session, setSession] = useRecoilState(currentSession);
   const [loading, setLoading] = useRecoilState(isLoading);
   const [player, setPlayer] = useRecoilState(currentUser);
-  const [gameInProgress, setGameInProgress] = useState<number | null>(null);
+  const [gameState, setGameState] = useRecoilState(currentGameState);
 
   useEffect(() => {
     themeChange(false);
@@ -79,7 +85,7 @@ const Root = ({ page, setPage }) => {
         .eq('player_id', player.id)
         .then(({ data }) => {
           if (data && data.length) {
-            setGameInProgress(data[0].game_id);
+            setGameState({ state: 'in_progress', id: data[0].game_id });
           }
         });
     }
@@ -90,8 +96,8 @@ const Root = ({ page, setPage }) => {
       <Toaster />
       {session &&
         player &&
-        gameInProgress &&
-        page !== `/prefixed/game/${gameInProgress}` && (
+        gameState.state !== 'not_started' &&
+        page !== `/prefixed/game/${gameState.id}` && (
           <div className='w-full'>
             <div className='bg-neutral text-center p-1 text-xs'>
               <Separated
@@ -103,13 +109,23 @@ const Root = ({ page, setPage }) => {
             <div className='flex w-full'>
               <button
                 className='btn uppercase separated-min btn-primary grow'
-                onClick={() => navigate(`/prefixed/game/${gameInProgress}`)}
+                onClick={() => navigate(`/prefixed/game/${gameState.id}`)}
               >
                 Join
               </button>
               <button
                 className='btn uppercase separated-min btn-secondary grow'
-                onClick={() => {}}
+                onClick={() => {
+                  leaveGame(player.id, supabase)
+                    .then(() => {
+                      toast.success('Left game');
+                      setGameState({ state: 'not_started', id: -1 });
+                    })
+                    .catch((error) => {
+                      toast.error('Error leaving game');
+                      console.error('Error leaving game:', error.message);
+                    });
+                }}
               >
                 Leave
               </button>

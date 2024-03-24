@@ -9,8 +9,14 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import Separated from '../components/Separated';
-import { currentGame, currentUser, isLoading } from '../stores';
+import {
+  currentGame,
+  currentGameState,
+  currentUser,
+  isLoading,
+} from '../stores';
 import type { CurrentTurnType, GameTurnType } from '../types';
+import { leaveGame } from '../shared';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -20,6 +26,7 @@ const Game = () => {
   const player = useRecoilValue(currentUser) || null;
   const [game, setGame] = useRecoilState(currentGame);
   const [loading, setLoading] = useRecoilState(isLoading);
+  const [gameState, setGameState] = useRecoilState(currentGameState);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
   const [word, setWord] = useState<string>('');
   const [turns, setTurns] = useState<GameTurnType[]>([]);
@@ -125,9 +132,12 @@ const Game = () => {
   };
 
   const onConfirmLeave = async () => {
-    // TODO: Leave the game by deleting user's id from game_players
     hideModal('leaveGame');
-    navigate('/prefixed/');
+    leaveGame(player?.id, supabase).then(() => {
+      setGameState({ state: 'not_started', id: -1 });
+      toast.success('Left the game');
+      navigate('/prefixed/');
+    });
   };
 
   const onCancelLeave = async () => {
@@ -348,7 +358,7 @@ const Game = () => {
             table: 'game_turns',
             filter: `game_id=eq.${id}`,
           },
-          async (payload) => {
+          (payload) => {
             setTurns((old) =>
               [
                 ...old,
@@ -373,7 +383,7 @@ const Game = () => {
             table: 'game',
             filter: `id=eq.${id}`,
           },
-          async (payload) => {
+          (payload) => {
             setDisabled({
               value: payload.new.turn !== turn?.value,
               message:
@@ -443,6 +453,36 @@ const Game = () => {
                 startedAt: new Date(payload.new.timer_started_at) || null,
                 endsAt: new Date(payload.new.timer_will_end_at) || null,
                 ended: false,
+              }));
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'player_colors',
+            filter: `game_id=eq.${id}`,
+          },
+          async (payload) => {
+            if (player?.id === payload.new.player_id) {
+              const { data, error } = await supabase
+                .from('colors')
+                .select('hex')
+                .eq('id', payload.new.color);
+
+              if (error) {
+                console.error(`Error retrieving color for the user: ${error}`);
+                toast.error(
+                  `Error retrieving color for the user: ${error.message}`
+                );
+                return;
+              }
+
+              setAvatars((old) => ({
+                ...old,
+                [payload.new.player_id]: data,
               }));
             }
           }

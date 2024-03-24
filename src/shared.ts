@@ -49,3 +49,7 @@ export const getTurns = (game_id: string, supabase: SupabaseClient) => {
     .order('created_at', { ascending: false })
     .limit(10);
 };
+
+export const leaveGame = (player_id, supabase) => {
+  return supabase.from('game_players').delete().eq('player_id', player_id);
+};
