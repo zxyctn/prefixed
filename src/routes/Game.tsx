@@ -466,11 +466,13 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           async (payload) => {
-            if (player?.id === payload.new.player_id) {
+            if (player?.id !== payload.new.player_id) {
+              console.log(payload);
+
               const { data, error } = await supabase
                 .from('colors')
                 .select('hex')
-                .eq('id', payload.new.color);
+                .eq('id', payload.new.color_id);
 
               if (error) {
                 console.error(`Error retrieving color for the user: ${error}`);
@@ -482,7 +484,7 @@ const Game = () => {
 
               setAvatars((old) => ({
                 ...old,
-                [payload.new.player_id]: data,
+                [payload.new.player_id]: data[0].hex,
               }));
             }
           }
