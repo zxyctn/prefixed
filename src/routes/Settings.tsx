@@ -46,9 +46,9 @@ const Settings = () => {
         </div>
       </div>
 
-      <div className='dropdown dropdown-top '>
+      <div className='dropdown dropdown-top max-w-[300px]'>
         <div tabIndex={0} role='button' className=''>
-          <div className='border border-secondary flex justify-between items-center w-full flex-wrap gap-2 p-3 py-3'>
+          <div className='btn btn-secondary flex justify-between items-center w-full flex-wrap gap-2 p-3 py-3'>
             <User size={20} />
             <div className='uppercase font-medium text-xs'>{player?.email}</div>
           </div>
