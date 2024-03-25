@@ -90,7 +90,7 @@ const Home = () => {
             lang: payload.new.lang,
             prefix: payload.new.prefix,
             number_of_players: payload.new.number_of_players,
-            joined_players: 0,
+            joined_players: 1,
             unique_id: payload.new.unique_id,
           },
         ]);
@@ -133,6 +133,56 @@ const Home = () => {
         );
       }
     )
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'game_players',
+      },
+      async (payload) => {
+        setGames((prev) =>
+          prev
+            .map((game) => {
+              if (game.id === payload.new.game_id) {
+                return {
+                  ...game,
+                  joined_players: game.joined_players + 1,
+                };
+              }
+
+              return game;
+            })
+            .filter((game) => game.joined_players < game.number_of_players)
+        );
+      }
+    )
+    // TODO: Create a custom delete response, so when player is deleted, server sends the game_id as well
+    // .on(
+    //   'postgres_changes',
+    //   {
+    //     event: 'DELETE',
+    //     schema: 'public',
+    //     table: 'game_players',
+    //   },
+    //   async (payload) => {
+    //     console.log(payload)
+    //     setGames((prev) =>
+    //       prev
+    //         .map((game) => {
+    //           if (game.id === payload.old.game_id) {
+    //             return {
+    //               ...game,
+    //               joined_players: game.joined_players - 1,
+    //             };
+    //           }
+
+    //           return game;
+    //         })
+    //         .filter((game) => game.joined_players < game.number_of_players)
+    //     );
+    //   }
+    // )
     .subscribe();
 
   // TODO: When clicked on row open up modal for joining the game
