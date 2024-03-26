@@ -193,7 +193,7 @@ const Game = () => {
       insertTurn();
     } else if (
       (/^[a-zA-Z\-]$/i.test(e.key) && game!.lang === 'en') ||
-      (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş\-]$/i.test(e.key) && game!.lang === 'az') ||
+      (/^[a-zA-ZƏəĞğİiıÖöÜüÇçŞş\-]$/i.test(e.key) && game!.lang === 'az') ||
       e.key === 'Backspace'
     ) {
       // Do nothing

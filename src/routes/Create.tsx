@@ -1,23 +1,21 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Globe, Hash, Users } from 'react-feather';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import Button from '../components/Button';
 import InputField from '../components/InputField';
-import { useRecoilValue } from 'recoil';
-import { currentUser } from '../stores';
-import toast from 'react-hot-toast';
 
 const Create = () => {
   const supabase: SupabaseClient = useOutletContext();
-  const player = useRecoilValue(currentUser);
   const navigate = useNavigate();
 
   const [lang, setLang] = useState('az');
   const [numberOfPlayers, setNumberOfPlayers] = useState(2);
   const [prefix, setPrefix] = useState('');
-  const [turnDuration, setTurnDuration] = useState(60);
+  const [turnDuration] = useState(60);
+  const [displayAdvanced, setDisplayAdvanced] = useState(false);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -49,7 +47,7 @@ const Create = () => {
       e.key === 'Backspace' ||
       (prefix.length <= 3 &&
         ((/^[a-zA-Z]$/i.test(e.key) && lang === 'en') ||
-          (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && lang === 'az')))
+          (/^[a-zA-ZƏəĞğİiıÖöÜüÇçŞş]$/i.test(e.key) && lang === 'az')))
     ) {
     } else {
       e.preventDefault();
