@@ -49,16 +49,14 @@ const Home = () => {
       }
 
       setGames(
-        data.map(async (game) => {
-          return {
-            id: game.id,
-            lang: game.lang,
-            prefix: game.prefix,
-            number_of_players: game.number_of_players,
-            joined_players: game.joined_players,
-            unique_id: game.unique_id,
-          };
-        })
+        data?.map((game) => ({
+          id: game.id,
+          lang: game.lang,
+          prefix: game.prefix,
+          number_of_players: game.number_of_players,
+          joined_players: game.joined_players,
+          unique_id: game.unique_id,
+        }))
       );
 
       setLoading(false);
@@ -85,7 +83,7 @@ const Home = () => {
             lang: payload.new.lang,
             prefix: payload.new.prefix,
             number_of_players: payload.new.number_of_players,
-            joined_players: 1,
+            joined_players: payload.new.joined_players,
             unique_id: payload.new.unique_id,
           },
         ]);

@@ -11,8 +11,10 @@ export type InputFieldProps = {
   children?: ReactNode;
   vertical?: boolean;
   className?: string;
+  defaultValue?: string | number;
   type?: string;
   required?: boolean;
+  value: string | number;
   onChange?: (e) => void;
   onKeyDown?: (e) => void;
   options?: { value: string; label: string }[];
