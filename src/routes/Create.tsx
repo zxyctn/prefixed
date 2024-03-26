@@ -40,8 +40,20 @@ const Create = () => {
     }
   };
 
-  const prefixChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const prefixChangeHandler = (e) => {
     setPrefix(e.target.value);
+  };
+
+  const prefixKeystrokeHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.key === 'Backspace' ||
+      (prefix.length <= 3 &&
+        ((/^[a-zA-Z]$/i.test(e.key) && lang === 'en') ||
+          (/^[a-zA-ZƏəĞğİiÖöÜüÇçŞş]$/i.test(e.key) && lang === 'az')))
+    ) {
+    } else {
+      e.preventDefault();
+    }
   };
 
   const langChangeHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -78,6 +90,7 @@ const Create = () => {
           <InputField
             vertical={true}
             className='text-center separated-min'
+            onKeyDown={prefixKeystrokeHandler}
             onChange={prefixChangeHandler}
           >
             <Hash />
