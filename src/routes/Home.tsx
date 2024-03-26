@@ -3,15 +3,15 @@ import { toast } from 'react-hot-toast';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { currentUser, isLoading } from '../stores';
+import { useSetRecoilState } from 'recoil';
+
 import Separated from '../components/Separated';
+import { isLoading } from '../stores';
 
 const Home = () => {
   const supabase: SupabaseClient = useOutletContext();
   const navigate = useNavigate();
   const setLoading = useSetRecoilState(isLoading);
-  const player = useRecoilValue(currentUser);
 
   const [games, setGames] = useState<any>([]);
 
@@ -37,35 +37,30 @@ const Home = () => {
   useEffect(() => {
     const getGames = async () => {
       setLoading(true);
-      // TODO: Filter games that don't have maximum number of players reached
       const { data, error } = await supabase
         .from('game')
         .select('*')
         .eq('state', 'not_started');
 
-      // not_started means the game is still open for joining
-      // not_ready means the game is full and ready to start
-      // in_progress means the game is currently being played
+      if (error) {
+        console.error('Error fethcing games', error);
+        toast.error(`Error fetching games: ${error.message}`);
+        return;
+      }
 
-      const gamesData = await Promise.all(
-        data!.map(async (game) => {
-          const { data: gamePlayersData, error } = await supabase
-            .from('game_players')
-            .select('game_id')
-            .eq('game_id', game.id);
-
+      setGames(
+        data.map(async (game) => {
           return {
             id: game.id,
             lang: game.lang,
             prefix: game.prefix,
             number_of_players: game.number_of_players,
-            joined_players: gamePlayersData?.length,
+            joined_players: game.joined_players,
             unique_id: game.unique_id,
           };
         })
       );
 
-      setGames(gamesData);
       setLoading(false);
     };
 
@@ -136,7 +131,6 @@ const Home = () => {
     )
     .subscribe();
 
-  // TODO: When clicked on row open up modal for joining the game
   return (
     <div className='overflow-x-auto no-scrollbar'>
       <table className='table table-lg table-pin-cols m-auto'>
