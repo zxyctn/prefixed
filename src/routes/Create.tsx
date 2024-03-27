@@ -95,6 +95,7 @@ const Create = () => {
             ]}
             value={lang}
             onChange={langChangeHandler}
+            required
           >
             <Globe />
           </InputField>
@@ -106,6 +107,7 @@ const Create = () => {
             onKeyDown={prefixKeystrokeHandler}
             onChange={prefixChangeHandler}
             value={prefix}
+            required
           >
             <Hash />
           </InputField>
@@ -120,6 +122,7 @@ const Create = () => {
             value={numberOfPlayers}
             onChange={numberOfPlayersChangeHandler}
             defaultValue={2}
+            required
           >
             <Users />
           </InputField>
@@ -147,6 +150,7 @@ const Create = () => {
             onChange={turnDurationHandler}
             value={turnDuration}
             defaultValue={60}
+            required
           >
             <Clock />
           </InputField>
