@@ -12,7 +12,6 @@ const InputField = ({
   max = 0,
   onChange,
   onKeyDown,
-  defaultValue,
   value,
   options = [],
 }: InputFieldProps) => {
@@ -37,7 +36,6 @@ const InputField = ({
           value={value}
           min={min}
           max={max}
-          defaultValue={defaultValue}
           className={`bg-transparent p-0 w-full place-self-center uppercase roboto-regular ${className}`}
         />
       ) : (
@@ -46,7 +44,7 @@ const InputField = ({
           onChange={onChange}
         >
           {options.map((o) => (
-            <option value={o.value} selected={o.value === value} key={o.value}>
+            <option value={o.value} key={o.value}>
               {o.label}
             </option>
           ))}

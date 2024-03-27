@@ -121,7 +121,6 @@ const Create = () => {
             max={10}
             value={numberOfPlayers}
             onChange={numberOfPlayersChangeHandler}
-            defaultValue={2}
             required
           >
             <Users />
@@ -149,7 +148,6 @@ const Create = () => {
             max={120}
             onChange={turnDurationHandler}
             value={turnDuration}
-            defaultValue={60}
             required
           >
             <Clock />

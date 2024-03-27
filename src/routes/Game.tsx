@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
-import { Send, Sliders, X } from 'react-feather';
+import { Clock, Globe, Hash, Send, Sliders, Users, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -9,14 +9,15 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
 import Separated from '../components/Separated';
+import Modal from '../components/Modal';
 import {
   currentGame,
   currentGameState,
   currentUser,
   isLoading,
 } from '../stores';
-import type { CurrentTurnType, GameTurnType } from '../types';
 import { leaveGame } from '../shared';
+import type { CurrentTurnType, GameTurnType } from '../types';
 
 const Game = () => {
   const id = useParams<{ id: string }>().id || null;
@@ -43,7 +44,7 @@ const Game = () => {
   const [expirationInterval, setExpirationInterval] = useState<any>(null);
   const [subscribed, setSubscribed] = useState<boolean>(false);
   const [sent, setSent] = useState<boolean>(false);
-  const [notExists, setNotExists] = useState<{ id: number; word: string }>();
+  const [poll, setPoll] = useState<{ id: number; content: string }>();
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
   const [isReady, setIsReady] = useState<boolean>(false);
   const [playerStates, setPlayerStates] = useState<{ [key: string]: string }>(
@@ -103,17 +104,33 @@ const Game = () => {
     setLoading(false);
   };
 
+  const onStartFinishGamePoll = async () => {
+    resetStates();
+    setDisabled({ value: true, message: 'Poll in progress' });
+    setLoading(true);
+    await supabase.from('game_votes').insert([
+      {
+        game_id: id,
+        content: word,
+        vote_type: 'FINISH',
+        result: null,
+        player_id: player?.id,
+        yes: 1,
+      },
+    ]);
+    setLoading(false);
+  };
+
   const onCancelStartPoll = async () => {
     hideModal('startPoll');
   };
 
   const onPollResponse = async (vote: 'no' | 'yes') => {
-    if (notExists && !sent) {
+    if (!sent && poll?.content) {
       setSent(true);
-      setLoading(true);
 
       let { data, error } = await supabase.rpc('increment_vote', {
-        vote_id: notExists?.id,
+        vote_id: poll?.id,
         vote_type: vote,
       });
 
@@ -125,7 +142,8 @@ const Game = () => {
       }
 
       hideModal('notExistsPoll');
-      setNotExists(undefined);
+      hideModal('finishGamePoll');
+      setPoll(undefined);
       setSent(false);
       setLoading(false);
     }
@@ -412,12 +430,21 @@ const Game = () => {
           },
           (payload) => {
             if (payload.new.player_id !== player?.id) {
-              setNotExists({
-                word: payload.new.content,
-                id: payload.new.id,
-              });
-              setTimer({ duration: 30, startedAt: new Date() });
-              showModal('notExistsPoll');
+              if (payload.new.vote_type === 'NOT_EXISTS') {
+                setPoll({
+                  content: payload.new.content,
+                  id: payload.new.id,
+                });
+                setTimer({ duration: 30, startedAt: new Date() });
+                showModal('notExistsPoll');
+              } else if (payload.new.vote_type === 'FINISH') {
+                setPoll({
+                  content: payload.new.content,
+                  id: payload.new.id,
+                });
+                setTimer({ duration: 30, startedAt: new Date() });
+                showModal('finishGamePoll');
+              }
             }
           }
         )
@@ -430,16 +457,20 @@ const Game = () => {
             filter: `player_id=eq.${player?.id}`,
           },
           async (payload) => {
-            setLoading(true);
-            const { error } = await supabase.rpc('notexists_voting_handler', {
-              param_id: payload.new.id,
-            });
-            setLoading(false);
-            if (error) {
-              console.error(error);
-              toast.error(error.message);
+            if (payload.new.vote_type === 'NOT_EXISTS') {
+              setLoading(true);
+              const { error } = await supabase.rpc('notexists_voting_handler', {
+                param_id: payload.new.id,
+              });
+              setLoading(false);
+              if (error) {
+                console.error(error);
+                toast.error(error.message);
+              }
+              resetStates();
+            } else if (payload.new.vote_type === 'FINISH') {
+              // TODO: Finish game by deleting game
             }
-            resetStates();
           }
         )
         .on(
@@ -512,7 +543,7 @@ const Game = () => {
     <div className='h-full w-full p-4 flex flex-col'>
       <div className='flex justify-between pb-4 items-center'>
         <span>
-          <button>
+          <button onClick={() => showModal('gameConfig')}>
             <Sliders />
           </button>
         </span>
@@ -656,7 +687,22 @@ const Game = () => {
         duration={timer}
       >
         <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
-          <Separated content={notExists?.word} />
+          <Separated content={poll?.content} />
+        </h1>
+      </Confirm>
+
+      <Confirm
+        id='finishGamePoll'
+        title='Finish game?'
+        confirmButtonText='Yes'
+        cancelButtonText='No'
+        onConfirm={() => onPollResponse('yes')}
+        onCancel={() => onPollResponse('no')}
+        onTimerFinish={() => onPollResponse('no')}
+        duration={timer}
+      >
+        <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
+          <Separated content={'Finish game?'} />
         </h1>
       </Confirm>
 
@@ -672,6 +718,39 @@ const Game = () => {
           <Separated content='Leave the game?' />
         </h1>
       </Confirm>
+
+      <Modal id='gameConfig' title='specs'>
+        <div className='grid gap-3'>
+          <div className='border border-secondary'>
+            <div className='flex gap-5 w-min p-3'>
+              <Users />
+              {game?.number_of_players}
+            </div>
+          </div>
+          <div className='border border-secondary'>
+            <div className='flex gap-5 w-min p-3'>
+              <Hash />
+              <Separated content={game?.prefix} />
+            </div>
+          </div>
+          <div className='border border-secondary'>
+            <div className='flex gap-5 w-min p-3'>
+              <Globe />
+              <span className='uppercase separated-min'>{game?.lang}</span>
+            </div>
+          </div>
+          <div className='border border-secondary'>
+            <div className='flex gap-5 w-min p-3'>
+              <Clock />
+              {game?.turn_duration}
+              <div className='uppercase separated-min'>seconds</div>
+            </div>
+          </div>
+          <button className='btn btn-secondary' onClick={onStartFinishGamePoll}>
+            <Separated content='Finish game' className='separated-min' />
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

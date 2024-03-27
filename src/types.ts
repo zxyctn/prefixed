@@ -11,7 +11,6 @@ export type InputFieldProps = {
   children?: ReactNode;
   vertical?: boolean;
   className?: string;
-  defaultValue?: string | number;
   type?: string;
   required?: boolean;
   value?: string | number;
