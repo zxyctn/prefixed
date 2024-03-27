@@ -87,7 +87,7 @@ const Game = () => {
     (document.getElementById(modalId) as HTMLDialogElement).close();
   };
 
-  const onStartPoll = async () => {
+  const onStartPoll = async (vote_type: 'NOT_EXISTS' | 'FINISH') => {
     resetStates();
     setDisabled({ value: true, message: 'Poll in progress' });
     setLoading(true);
@@ -95,24 +95,7 @@ const Game = () => {
       {
         game_id: id,
         content: word,
-        vote_type: 'NOT_EXISTS',
-        result: null,
-        player_id: player?.id,
-        yes: 1,
-      },
-    ]);
-    setLoading(false);
-  };
-
-  const onStartFinishGamePoll = async () => {
-    resetStates();
-    setDisabled({ value: true, message: 'Poll in progress' });
-    setLoading(true);
-    await supabase.from('game_votes').insert([
-      {
-        game_id: id,
-        content: word,
-        vote_type: 'FINISH',
+        vote_type: vote_type,
         result: null,
         player_id: player?.id,
         yes: 1,
@@ -287,6 +270,19 @@ const Game = () => {
               return acc;
             }, {} as { [key: string]: string })
           );
+        } else {
+          console.error('Game was not found');
+          toast(
+            'Game was not found.\nYou will be redirected to the home page',
+            {
+              icon: '🏠',
+              duration: 5000,
+            }
+          );
+
+          setTimeout(() => {
+            navigate('/prefixed/');
+          }, 5000);
         }
 
         if (error) {
@@ -668,7 +664,7 @@ const Game = () => {
         title="Doesn't exist"
         confirmButtonText='Start poll'
         cancelButtonText='Cancel'
-        onConfirm={onStartPoll}
+        onConfirm={() => onStartPoll('NOT_EXISTS')}
         onCancel={onCancelStartPoll}
       >
         <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
@@ -746,7 +742,10 @@ const Game = () => {
               <div className='uppercase separated-min'>seconds</div>
             </div>
           </div>
-          <button className='btn btn-secondary' onClick={onStartFinishGamePoll}>
+          <button
+            className='btn btn-secondary'
+            onClick={() => onStartPoll('FINISH')}
+          >
             <Separated content='Finish game' className='separated-min' />
           </button>
         </div>

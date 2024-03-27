@@ -67,71 +67,77 @@ const Home = () => {
     getGames();
   }, []);
 
-  supabase
-    .channel('game')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'game',
-        filter: 'password=eq.',
-      },
-      (payload) => {
-        if (payload.new.state !== 'not_started') return;
+  useEffect(() => {
+    supabase
+      .channel('game')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'game',
+          filter: 'password=eq.',
+        },
+        (payload) => {
+          if (payload.new.state !== 'not_started') return;
 
-        setGames((prev) => [
-          ...prev,
-          {
-            id: payload.new.id,
-            lang: payload.new.lang,
-            prefix: payload.new.prefix,
-            number_of_players: payload.new.number_of_players,
-            joined_players: payload.new.joined_players,
-            unique_id: payload.new.unique_id,
-          },
-        ]);
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'game',
-        filter: 'state=eq.not_started',
-      },
-      (payload) => {
-        setGames((prev) => prev.filter((game) => game.id !== payload.old.id));
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'game',
-        filter: 'state=eq.not_started',
-      },
-      (payload) => {
-        setGames((prev) =>
-          prev.map((game) => {
-            if (game.id === payload.new.id) {
-              return {
-                ...game,
-                lang: payload.new.lang,
-                prefix: payload.new.prefix,
-                number_of_players: payload.new.number_of_players,
-                joined_players: payload.new.joined_players,
-              };
-            }
+          setGames((prev) => [
+            ...prev,
+            {
+              id: payload.new.id,
+              lang: payload.new.lang,
+              prefix: payload.new.prefix,
+              number_of_players: payload.new.number_of_players,
+              joined_players: payload.new.joined_players,
+              unique_id: payload.new.unique_id,
+            },
+          ]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'game',
+          filter: 'state=eq.not_started',
+        },
+        (payload) => {
+          setGames((prev) => prev.filter((game) => game.id !== payload.old.id));
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game',
+          filter: 'state=eq.not_started',
+        },
+        (payload) => {
+          setGames((prev) =>
+            prev.map((game) => {
+              if (game.id === payload.new.id) {
+                return {
+                  ...game,
+                  lang: payload.new.lang,
+                  prefix: payload.new.prefix,
+                  number_of_players: payload.new.number_of_players,
+                  joined_players: payload.new.joined_players,
+                };
+              }
 
-            return game;
-          })
-        );
-      }
-    )
-    .subscribe();
+              return game;
+            })
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.channel('game').unsubscribe();
+    };
+  }, []);
 
   return (
     <div className='overflow-x-auto no-scrollbar'>
