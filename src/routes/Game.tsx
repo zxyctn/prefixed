@@ -40,6 +40,7 @@ const Game = () => {
     message: '',
   });
   const [progress, setProgress] = useState<number>(0);
+  const [possibilities, setPossibilities] = useState<number>(0);
   const [expirationTimeout, setExpirationTimeout] = useState<any>(null);
   const [expirationInterval, setExpirationInterval] = useState<any>(null);
   const [subscribed, setSubscribed] = useState<boolean>(false);
@@ -226,6 +227,25 @@ const Game = () => {
     toast.success('Copied to clipboard');
   };
 
+  const showPossibilities = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.rpc('get_word_count', {
+      pre: game?.prefix,
+      g_id: id,
+    });
+
+    if (error) {
+      setLoading(false);
+      console.error('Error retrieving the word count', error);
+      toast.error(`Error retrieving the word count: ${error.message}`);
+      return;
+    }
+
+    setLoading(false);
+    setPossibilities(data);
+    showModal('prefix');
+  };
+
   useEffect(() => {
     const init = async () => {
       if (id && supabase && player) {
@@ -273,7 +293,7 @@ const Game = () => {
         } else {
           console.error('Game was not found');
           toast(
-            'Game was not found.\nYou will be redirected to the home page',
+            'Game was not found.\n\nYou will be redirected to the home page.',
             {
               icon: '🏠',
               duration: 5000,
@@ -544,7 +564,9 @@ const Game = () => {
           </button>
         </span>
         <span className='uppercase flex justify-center w-full text-lg'>
-          <Separated content={game?.prefix} className='separated-min' />
+          <button onClick={showPossibilities}>
+            <Separated content={game?.prefix} className='separated-min' />
+          </button>
         </span>
         <button onClick={() => showModal('leaveGame')}>
           <X />
@@ -748,6 +770,15 @@ const Game = () => {
           >
             <Separated content='Finish game' className='separated-min' />
           </button>
+        </div>
+      </Modal>
+
+      <Modal id='prefix' title={game?.prefix}>
+        <div className='text-center'>
+          <Separated
+            content={`${possibilities} possible words`}
+            className='separated-min'
+          />
         </div>
       </Modal>
     </div>
