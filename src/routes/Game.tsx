@@ -384,6 +384,11 @@ const Game = () => {
             filter: `id=eq.${id}`,
           },
           (payload) => {
+            if (payload.new.joined_players < game!.joined_players) {
+              toast('A player left the game', {
+                icon: '👋',
+              });
+            }
             setDisabled({
               value: payload.new.turn !== turn?.value,
               message:
@@ -392,6 +397,7 @@ const Game = () => {
             setGame((old) => ({
               ...old!,
               state: payload.new.state,
+              joined_players: payload.new.joined_players,
             }));
             resetStates();
           }
@@ -498,6 +504,7 @@ const Game = () => {
       // Clear the timeout or interval here
       clearTimeout(expirationTimeout);
       clearInterval(expirationInterval);
+      supabase.channel(`game=${id}`).unsubscribe();
     };
   }, [id, player, game, turn]);
 
@@ -529,6 +536,7 @@ const Game = () => {
             ))}
 
           {game?.state === 'not_ready' &&
+            playerStates &&
             Object.keys(playerStates)
               .filter((p) => p !== player?.id)
               .map((p) => (

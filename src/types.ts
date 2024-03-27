@@ -44,6 +44,7 @@ export type GameType = {
   turn: number | null;
   turn_duration: number | null;
   unique_id: string;
+  joined_players: number;
 };
 
 export type GamePlayerType = {
