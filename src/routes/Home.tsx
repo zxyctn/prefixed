@@ -19,6 +19,7 @@ const Home = () => {
     setLoading(true);
     const { data, error } = await supabase.rpc('join_game', {
       p_unique_id: game.unique_id,
+      p_password: '',
     });
 
     if (error) {
@@ -40,7 +41,8 @@ const Home = () => {
       const { data, error } = await supabase
         .from('game')
         .select('*')
-        .eq('state', 'not_started');
+        .eq('state', 'not_started')
+        .eq('password', '');
 
       if (error) {
         console.error('Error fethcing games', error);
@@ -73,9 +75,11 @@ const Home = () => {
         event: 'INSERT',
         schema: 'public',
         table: 'game',
-        filter: 'state=eq.not_started',
+        filter: 'password=eq.',
       },
       (payload) => {
+        if (payload.new.state !== 'not_started') return;
+
         setGames((prev) => [
           ...prev,
           {

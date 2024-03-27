@@ -14,7 +14,7 @@ export type InputFieldProps = {
   defaultValue?: string | number;
   type?: string;
   required?: boolean;
-  value: string | number;
+  value?: string | number;
   onChange?: (e) => void;
   onKeyDown?: (e) => void;
   options?: { value: string; label: string }[];

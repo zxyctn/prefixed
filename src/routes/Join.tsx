@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Key } from 'react-feather';
+import { Key, Link } from 'react-feather';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -10,6 +10,7 @@ import Button from '../components/Button';
 const Join = () => {
   const supabase: SupabaseClient = useOutletContext();
   const [uniqueId, setUniqueId] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   const submitHandler = async (e) => {
@@ -17,6 +18,7 @@ const Join = () => {
 
     const { data, error } = await supabase.rpc('join_game', {
       p_unique_id: uniqueId,
+      p_password: password,
     });
 
     if (error) {
@@ -30,8 +32,12 @@ const Join = () => {
     navigate(`/prefixed/game/${data}`);
   };
 
-  const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const idChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUniqueId(e.target.value);
+  };
+
+  const passwordChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
   };
 
   return (
@@ -39,7 +45,10 @@ const Join = () => {
       onSubmit={submitHandler}
       className='w-full h-full grid place-items-center place-content-center gap-3 md:gap-6'
     >
-      <InputField onChange={changeHandler}>
+      <InputField onChange={idChangeHandler}>
+        <Link />
+      </InputField>
+      <InputField onChange={passwordChangeHandler} className='normal-case'>
         <Key />
       </InputField>
       <Button type='submit' className='btn-primary w-full'>
