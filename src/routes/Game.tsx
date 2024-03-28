@@ -48,7 +48,7 @@ const Game = () => {
   const [poll, setPoll] = useState<{ id: number; content: string }>();
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [playerStates, setPlayerStates] = useState<{ [key: string]: string }>(
+  const [playerStates, setPlayerStates] = useState<{ [key: string]: boolean }>(
     {}
   );
 
@@ -65,19 +65,6 @@ const Game = () => {
     clearInterval(expirationInterval);
     setExpirationTimeout(null);
     setExpirationInterval(null);
-  };
-
-  const insertEmptyAfterTimeout = async () => {
-    setLoading(true);
-    await supabase.from('game_turns').insert({
-      player_id: player?.id,
-      word: '',
-      game_id: id,
-      existent: false,
-      repeated: false,
-      accepted: false,
-    });
-    setLoading(false);
   };
 
   const showModal = (modalId) => {
@@ -322,15 +309,33 @@ const Game = () => {
   }, [id, supabase, player]);
 
   useEffect(() => {
-    if (subscribed && turn && turn?.startedAt && turn.endsAt && !turn.ended) {
+    const insertEmptyAfterTimeout = async () => {
+      setLoading(true);
+      await supabase.from('game_turns').insert({
+        player_id: player?.id,
+        word: '',
+        game_id: id,
+        existent: false,
+        repeated: false,
+        accepted: false,
+      });
+      setTurn((old) => ({
+        value: old?.value || -1,
+        startedAt: null,
+        endsAt: null,
+        ended: false,
+      }));
+      setLoading(false);
+    };
+
+    if (subscribed && turn && turn.startedAt && turn.endsAt && !turn.ended) {
       const interval = setInterval(() => {
         setTurn((old) => {
           if (old && old.startedAt) {
-            const now = new Date();
-            const diff = now.getTime() - old.startedAt.getTime();
-            const duration = (game?.turn_duration || 60) * 1000;
+            const diff = new Date().getTime() - old.startedAt.getTime();
+            const duration = game!.turn_duration! * 1000;
 
-            if (now >= turn.endsAt!) {
+            if (new Date() >= turn.endsAt!) {
               return { ...old, startedAt: null, endsAt: null, ended: true };
             }
 
@@ -340,7 +345,7 @@ const Game = () => {
           }
           return old;
         });
-      }, 1);
+      }, 100);
 
       setExpirationInterval(interval);
 
@@ -348,14 +353,7 @@ const Game = () => {
         clearInterval(interval);
       };
     } else if (turn && !turn.startedAt && !turn.endsAt && turn.ended) {
-      insertEmptyAfterTimeout().then(() => {
-        setTurn((old) => ({
-          value: old?.value || -1,
-          startedAt: null,
-          endsAt: null,
-          ended: false,
-        }));
-      });
+      insertEmptyAfterTimeout();
     }
 
     return () => {
@@ -377,7 +375,7 @@ const Game = () => {
             table: 'game_players',
             filter: `player_id=neq.${player?.id}`,
           },
-          async (payload) => {
+          (payload) => {
             setPlayerStates((old) => ({
               ...old,
               [payload.new.player_id]: payload.new.ready,
@@ -393,6 +391,7 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           (payload) => {
+            console.log(payload);
             setTurns((old) =>
               [
                 ...old,
@@ -419,9 +418,11 @@ const Game = () => {
           },
           (payload) => {
             if (payload.new.joined_players < game!.joined_players) {
-              toast('A player left the game', {
-                icon: '👋',
-              });
+              setTimeout(() => {
+                toast('A player left the game', {
+                  icon: '👋',
+                });
+              }, 1000);
             }
             setDisabled({
               value: payload.new.turn !== turn?.value,
@@ -520,8 +521,6 @@ const Game = () => {
           },
           async (payload) => {
             if (player?.id !== payload.new.player_id) {
-              console.log(payload);
-
               const { data, error } = await supabase
                 .from('colors')
                 .select('hex')
@@ -542,8 +541,8 @@ const Game = () => {
             }
           }
         )
-        .subscribe((status, err) => {
-          setSubscribed(true);
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') setSubscribed(true);
         });
     }
 
@@ -553,7 +552,7 @@ const Game = () => {
       clearInterval(expirationInterval);
       supabase.channel(`game=${id}`).unsubscribe();
     };
-  }, [id, player, game, turn]);
+  }, [turn]);
 
   return (
     <div className='h-full w-full p-4 flex flex-col'>
@@ -661,12 +660,16 @@ const Game = () => {
                     onKeyDown={keystrokeHandler}
                     disabled={disabled.value}
                   />
-                  <Send
-                    className={`absolute right-3 bottom-3 cursor-pointer
-                ${disabled.value ? ' btn-disabled' : ''}`}
+                  <button
+                    className={`absolute right-3 bottom-3 ${
+                      disabled.value ? ' btn-disabled' : ''
+                    }`}
                     onClick={insertTurn}
-                    size={20}
-                  />
+                    disabled={disabled.value}
+                    type='button'
+                  >
+                    <Send size={20} />
+                  </button>
                 </div>
               </div>
             </div>

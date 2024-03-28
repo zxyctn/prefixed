@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Globe, Hash, Users } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
