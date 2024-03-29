@@ -610,7 +610,7 @@ const Game = () => {
               .filter((p) => p !== player?.id)
               .map((p) => (
                 <Turn
-                  turn={players[p] ? 'Ready' : 'Not ready'}
+                  turn={players[p].ready ? 'Ready' : 'Not ready'}
                   color={avatars[p] || 'fff'}
                   key={`state-${p}`}
                 />
