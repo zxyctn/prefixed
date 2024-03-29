@@ -53,6 +53,7 @@ const Game = () => {
       points: number;
       ready: boolean;
       turn: number;
+      is_turn: boolean;
     };
   }>({});
 
@@ -257,6 +258,7 @@ const Game = () => {
                 points: p.points,
                 ready: p.ready,
                 turn: p.turn,
+                is_turn: p.is_turn,
               },
             }));
 
@@ -390,6 +392,7 @@ const Game = () => {
                 points: payload.new.points,
                 ready: payload.new.ready,
                 turn: payload.new.turn,
+                is_turn: payload.new.is_turn,
               },
             }));
           }
@@ -526,6 +529,7 @@ const Game = () => {
                   points: payload.new.points,
                   ready: payload.new.ready,
                   turn: payload.new.turn,
+                  is_turn: payload.new.is_turn,
                 },
               }));
             }
