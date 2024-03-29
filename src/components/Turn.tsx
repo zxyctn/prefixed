@@ -1,8 +1,17 @@
 import React from 'react';
 import { motion, usePresence } from 'framer-motion';
+
 import type { GameTurnType } from '../types';
 
-const Turn = ({ turn, color }) => {
+const Turn = ({
+  turn,
+  color,
+  points = null,
+}: {
+  points?: number | null;
+  color: string;
+  turn: GameTurnType | string;
+}) => {
   const [isPresent, safeToRemove] = usePresence();
 
   const transition = { type: 'spring', stiffness: 500, damping: 50, mass: 1 };
@@ -20,17 +29,27 @@ const Turn = ({ turn, color }) => {
 
   return (
     <motion.div {...animations}>
-      <div key={turn.id} className='flex gap-3 items-center'>
+      <div
+        key={typeof turn !== 'string' ? turn.id : turn}
+        className='flex gap-3 items-center'
+      >
         <div className='block'>
           <div
-            className='w-3 h-3'
-            style={{
-              background: color,
-            }}
-          ></div>
+            className={points !== null ? 'tooltip tooltip-right' : ''}
+            data-tip={`${points} points`}
+          >
+            <div
+              className='w-3 h-3'
+              style={{
+                background: color,
+              }}
+            ></div>
+          </div>
         </div>
 
-        {turn.repeated !== undefined && turn.existent !== undefined ? (
+        {typeof turn !== 'string' &&
+        turn.repeated !== undefined &&
+        turn.existent !== undefined ? (
           turn.repeated ? (
             <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
               repeated
@@ -50,7 +69,7 @@ const Turn = ({ turn, color }) => {
           )
         ) : (
           <div className='separated uppercase text-lg overflow-x-auto whitespace-nowrap'>
-            {turn}
+            {typeof turn === 'string' && turn}
           </div>
         )}
       </div>

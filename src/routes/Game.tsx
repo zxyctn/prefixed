@@ -48,9 +48,13 @@ const Game = () => {
   const [poll, setPoll] = useState<{ id: number; content: string }>();
   const [timer, setTimer] = useState<{ duration: number; startedAt: Date }>();
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [playerStates, setPlayerStates] = useState<{ [key: string]: boolean }>(
-    {}
-  );
+  const [players, setPlayers] = useState<{
+    [key: string]: {
+      points: number;
+      ready: boolean;
+      turn: number;
+    };
+  }>({});
 
   const resetStates = () => {
     setWord(game?.prefix || '');
@@ -247,9 +251,13 @@ const Game = () => {
           setWord(data.prefix);
           setTurns(data.turns ? [...data.turns].reverse() : []);
           data.players.forEach((p) => {
-            setPlayerStates((old) => ({
+            setPlayers((old) => ({
               ...old,
-              [p.player_id]: p.ready,
+              [p.player_id]: {
+                points: p.points,
+                ready: p.ready,
+                turn: p.turn,
+              },
             }));
 
             if (p.player_id === player.id) {
@@ -376,9 +384,13 @@ const Game = () => {
             filter: `player_id=neq.${player?.id}`,
           },
           (payload) => {
-            setPlayerStates((old) => ({
+            setPlayers((old) => ({
               ...old,
-              [payload.new.player_id]: payload.new.ready,
+              [payload.new.player_id]: {
+                points: payload.new.points,
+                ready: payload.new.ready,
+                turn: payload.new.turn,
+              },
             }));
           }
         )
@@ -391,7 +403,6 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           (payload) => {
-            console.log(payload);
             setTurns((old) =>
               [
                 ...old,
@@ -508,6 +519,15 @@ const Game = () => {
                 endsAt: new Date(payload.new.timer_will_end_at) || null,
                 ended: false,
               }));
+
+              setPlayers((old) => ({
+                ...old,
+                [payload.new.player_id]: {
+                  points: payload.new.points,
+                  ready: payload.new.ready,
+                  turn: payload.new.turn,
+                },
+              }));
             }
           }
         )
@@ -580,23 +600,24 @@ const Game = () => {
                 turn={turn}
                 color={avatars[turn?.player_id] || 'fff'}
                 key={turn.created_at}
+                points={players[turn.player_id]?.points}
               />
             ))}
 
           {game?.state === 'not_ready' &&
-            playerStates &&
-            Object.keys(playerStates)
+            players &&
+            Object.keys(players)
               .filter((p) => p !== player?.id)
               .map((p) => (
                 <Turn
-                  turn={playerStates[p] ? 'Ready' : 'Not ready'}
+                  turn={players[p] ? 'Ready' : 'Not ready'}
                   color={avatars[p] || 'fff'}
                   key={`state-${p}`}
                 />
               ))}
 
           {game?.state === 'not_started' &&
-            Object.keys(playerStates)
+            Object.keys(players)
               .filter((p) => p !== player?.id)
               .map((p) => (
                 <Turn
