@@ -36,7 +36,7 @@ const Turn = ({
         <div className='block'>
           <div
             className={points !== null ? 'tooltip tooltip-right' : ''}
-            data-tip={`${points} points`}
+            data-tip={`${points} ${points === 1 ? 'point' : 'points'}`}
           >
             <div
               className='w-3 h-3'
