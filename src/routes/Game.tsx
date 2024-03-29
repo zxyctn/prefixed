@@ -353,7 +353,7 @@ const Game = () => {
           }
           return old;
         });
-      }, 100);
+      }, 1000);
 
       setExpirationInterval(interval);
 
@@ -654,11 +654,12 @@ const Game = () => {
             )}
             <div className='grid gap-0 relative'>
               {turn?.startedAt && (
-                <progress
-                  className='progress progress-primary'
-                  value={progress}
-                  max={100}
-                ></progress>
+                <div className='bg-neutral/50'>
+                  <div
+                    className='transition-all duration-1000 ease-linear bg-primary h-2 '
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
               )}
               <div className=''>
                 <div
