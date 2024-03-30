@@ -16,7 +16,7 @@ const NoGame = () => {
   }, [gameState]);
 
   return (
-    <div className='flex justify-center w-screen h-screen items-center fixed -z-50'>
+    <div className='flex justify-center w-screen h-screen items-center fixed -z-50 px-5'>
       <Separated content='No game in progress' className='separated-min' />
     </div>
   );
