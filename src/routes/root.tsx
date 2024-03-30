@@ -94,45 +94,6 @@ const Root = ({ page, setPage }) => {
   return (
     <div className='h-screen flex flex-col'>
       <Toaster />
-      {session &&
-        player &&
-        gameState.state !== 'not_started' &&
-        page !== `/prefixed/game/${gameState.id}` && (
-          <div className='w-full'>
-            <div className='bg-neutral text-center p-1 text-xs'>
-              <Separated
-                className='separated-min'
-                content={'game in progress'}
-              />
-            </div>
-
-            <div className='flex w-full'>
-              <button
-                className='btn uppercase separated-min btn-primary grow'
-                onClick={() => navigate(`/prefixed/game/${gameState.id}`)}
-              >
-                Join
-              </button>
-              <button
-                className='btn uppercase separated-min btn-secondary grow'
-                onClick={() => {
-                  leaveGame(player.id, supabase)
-                    .then(() => {
-                      toast.success('Left game');
-                      setGameState({ state: 'not_started', id: -1 });
-                    })
-                    .catch((error) => {
-                      toast.error('Error leaving game');
-                      console.error('Error leaving game:', error.message);
-                    });
-                }}
-              >
-                Leave
-              </button>
-            </div>
-          </div>
-        )}
-
       {loading && (
         <div className='fixed w-full h-full flex justify-center items-center z-10'>
           <div className='blur absolute'></div>
@@ -142,7 +103,7 @@ const Root = ({ page, setPage }) => {
       <div className='grow'>
         <Outlet context={supabase} />
       </div>
-      {session && !location.pathname.includes('game') && (
+      {session && (
         <div className='align-bottom w-full'>
           <Navigation page={page} />
         </div>

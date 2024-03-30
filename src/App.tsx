@@ -11,6 +11,7 @@ import Create from './routes/Create';
 import Invites from './routes/Invites';
 import Settings from './routes/Settings';
 import ForgotPassword from './routes/ForgotPassword';
+import NoGame from './routes/NoGame';
 
 const App = () => {
   const [page, setPage] = useState<string>('');
@@ -56,6 +57,10 @@ const App = () => {
         {
           path: 'game/:id',
           element: <Game />,
+        },
+        {
+          path: 'game',
+          element: <NoGame />,
         },
       ],
     },

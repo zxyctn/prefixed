@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Clock, Globe, Hash, Send, Sliders, Users, X } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 import Confirm from '../components/Confirm';
 import Turn from '../components/Turn';
@@ -20,11 +20,12 @@ import { leaveGame } from '../shared';
 import type { CurrentTurnType, GameTurnType } from '../types';
 
 const Game = () => {
-  const id = useParams<{ id: string }>().id || null;
+  const id = useParams<{ id: string }>().id || '';
   const supabase: SupabaseClient = useOutletContext() || null;
   const navigate = useNavigate();
 
   const player = useRecoilValue(currentUser) || null;
+  const setJoinedGameState = useSetRecoilState(currentGameState);
   const [game, setGame] = useRecoilState(currentGame);
   const [loading, setLoading] = useRecoilState(isLoading);
   const [gameState, setGameState] = useRecoilState(currentGameState);
@@ -241,6 +242,8 @@ const Game = () => {
   useEffect(() => {
     const init = async () => {
       if (id && supabase && player) {
+        setJoinedGameState({ state: 'in_progress', id: parseInt(id) });
+
         setLoading(true);
         let { data, error } = await supabase.rpc('get_game_info', {
           param_id: id,
@@ -581,19 +584,23 @@ const Game = () => {
   return (
     <div className='h-full w-full p-4 flex flex-col'>
       <div className='flex justify-between pb-4 items-center'>
-        <span>
-          <button onClick={() => showModal('gameConfig')}>
-            <Sliders />
-          </button>
-        </span>
-        <span className='uppercase flex justify-center w-full text-lg'>
-          <button onClick={showPossibilities}>
-            <Separated content={game?.prefix} className='separated-min' />
-          </button>
-        </span>
-        <button onClick={() => showModal('leaveGame')}>
-          <X />
-        </button>
+        {game && (
+          <>
+            <span>
+              <button onClick={() => showModal('gameConfig')}>
+                <Sliders />
+              </button>
+            </span>
+            <span className='uppercase flex justify-center w-full text-lg'>
+              <button onClick={showPossibilities}>
+                <Separated content={game?.prefix} className='separated-min' />
+              </button>
+            </span>
+            <button onClick={() => showModal('leaveGame')}>
+              <X />
+            </button>
+          </>
+        )}
       </div>
 
       <div className='grow flex flex-col gap-3'>
@@ -633,7 +640,7 @@ const Game = () => {
         </AnimatePresence>
       </div>
 
-      <div className='fixed bottom-4 flex w-full flex-col right-0 px-4'>
+      <div className='fixed bottom-20 flex w-full flex-col right-0 px-4'>
         {game?.state === 'not_ready' ? (
           <button
             onClick={toggleIsReady}
