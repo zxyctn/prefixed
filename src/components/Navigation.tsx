@@ -27,9 +27,9 @@ const Navigation = ({ page }: { page: string }) => {
         onClick={() => navigate('/prefixed/')}
         className={isCurrent('/prefixed/')}
       />
-      <LogIn
-        onClick={() => navigate('/prefixed/join')}
-        className={isCurrent('/prefixed/join')}
+      <Plus
+        onClick={() => navigate('/prefixed/create')}
+        className={isCurrent('/prefixed/create')}
       />
       <Hash
         onClick={() =>
@@ -45,9 +45,9 @@ const Navigation = ({ page }: { page: string }) => {
           }`
         )}
       />
-      <Plus
-        onClick={() => navigate('/prefixed/create')}
-        className={isCurrent('/prefixed/create')}
+      <LogIn
+        onClick={() => navigate('/prefixed/join')}
+        className={isCurrent('/prefixed/join')}
       />
       <Settings
         onClick={() => navigate('/prefixed/settings')}
