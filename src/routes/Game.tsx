@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
-import { Clock, Globe, Hash, Send, Sliders, Users, X } from 'react-feather';
+import {
+  Clock,
+  Globe,
+  Hash,
+  Info,
+  Send,
+  Sliders,
+  Users,
+  X,
+} from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
@@ -26,9 +35,9 @@ const Game = () => {
 
   const player = useRecoilValue(currentUser) || null;
   const setJoinedGameState = useSetRecoilState(currentGameState);
+  const setLoading = useSetRecoilState(isLoading);
+  const setGameState = useSetRecoilState(currentGameState);
   const [game, setGame] = useRecoilState(currentGame);
-  const [loading, setLoading] = useRecoilState(isLoading);
-  const [gameState, setGameState] = useRecoilState(currentGameState);
   const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
   const [word, setWord] = useState<string>('');
   const [turns, setTurns] = useState<GameTurnType[]>([]);
@@ -81,7 +90,7 @@ const Game = () => {
     (document.getElementById(modalId) as HTMLDialogElement).close();
   };
 
-  const onStartPoll = async (vote_type: 'NOT_EXISTS' | 'FINISH') => {
+  const onStartPoll = async (vote_type: 'NOT_EXISTS') => {
     resetStates();
     setDisabled({ value: true, message: 'Poll in progress' });
     setLoading(true);
@@ -119,7 +128,6 @@ const Game = () => {
       }
 
       hideModal('notExistsPoll');
-      hideModal('finishGamePoll');
       setPoll(undefined);
       setSent(false);
       setLoading(false);
@@ -488,13 +496,6 @@ const Game = () => {
                 });
                 setTimer({ duration: 30, startedAt: new Date() });
                 showModal('notExistsPoll');
-              } else if (payload.new.vote_type === 'FINISH') {
-                setPoll({
-                  content: payload.new.content,
-                  id: payload.new.id,
-                });
-                setTimer({ duration: 30, startedAt: new Date() });
-                showModal('finishGamePoll');
               }
             }
           }
@@ -519,8 +520,6 @@ const Game = () => {
                 toast.error(error.message);
               }
               resetStates();
-            } else if (payload.new.vote_type === 'FINISH') {
-              // TODO: Finish game by deleting game
             }
           }
         )
@@ -605,7 +604,7 @@ const Game = () => {
           <>
             <span>
               <button onClick={() => showModal('gameConfig')}>
-                <Sliders />
+                {game?.creator_id === player?.id ? <Sliders /> : <Info />}
               </button>
             </span>
             <span className='uppercase flex justify-center w-full text-lg'>
@@ -763,21 +762,6 @@ const Game = () => {
       </Confirm>
 
       <Confirm
-        id='finishGamePoll'
-        title='Finish game?'
-        confirmButtonText='Yes'
-        cancelButtonText='No'
-        onConfirm={() => onPollResponse('yes')}
-        onCancel={() => onPollResponse('no')}
-        onTimerFinish={() => onPollResponse('no')}
-        duration={timer}
-      >
-        <h1 className='roboto-bold uppercase text-center text-md lg:text-lg'>
-          <Separated content={'Finish game?'} />
-        </h1>
-      </Confirm>
-
-      <Confirm
         id='leaveGame'
         title='Leave?'
         confirmButtonText='Yes'
@@ -817,12 +801,6 @@ const Game = () => {
               <div className='uppercase separated-min'>seconds</div>
             </div>
           </div>
-          <button
-            className='btn btn-secondary'
-            onClick={() => onStartPoll('FINISH')}
-          >
-            <Separated content='Finish game' className='separated-min' />
-          </button>
         </div>
       </Modal>
 
