@@ -433,13 +433,30 @@ const Game = () => {
             table: 'game',
             filter: `id=eq.${id}`,
           },
-          (payload) => {
+          async (payload) => {
             if (payload.new.joined_players < game!.joined_players) {
-              setTimeout(() => {
-                toast('A player left the game', {
-                  icon: '👋',
+              const { data, error } = await supabase
+                .from('game_players')
+                .select('player_id')
+                .eq('game_id', id);
+
+              if (error) {
+                console.error(error);
+                toast.error(error.message);
+              }
+
+              if (data) {
+                Object.keys(players).forEach((p) => {
+                  if (
+                    !data.some((d) => d.player_id === p) &&
+                    p !== player?.id
+                  ) {
+                    toast('A player left the game', {
+                      icon: '👋',
+                    });
+                  }
                 });
-              }, 1000);
+              }
             }
             setDisabled({
               value: payload.new.turn !== turn?.value,
