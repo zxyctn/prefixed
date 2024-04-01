@@ -68,7 +68,7 @@ const Turn = ({
             </div>
           )
         ) : (
-          <div className='separated uppercase text-lg overflow-x-auto whitespace-nowrap'>
+          <div className='separated uppercase text-lg sm:text-xl md:text-2xl lg:text-3xl overflow-x-auto whitespace-nowrap'>
             {typeof turn === 'string' && turn}
           </div>
         )}

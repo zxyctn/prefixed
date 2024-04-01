@@ -218,9 +218,9 @@ const Game = () => {
       console.error(error);
       toast.error(error.message);
     } else {
-      setLoading(false);
       setIsReady((old) => !old);
     }
+    setLoading(false);
   };
 
   const copyIdToClipboard = async () => {
@@ -614,74 +614,77 @@ const Game = () => {
   }, [turn]);
 
   return (
-    <div className='h-full w-full p-4 sm:px-6 md:px-8 flex flex-col'>
+    <div className='h-full w-full pt-4 px-4 sm:px-6 md:px-8 flex flex-col justify-between'>
       {game && (
-        <div className='flex justify-between pb-4 sm:pb-6 items-center'>
-          <span>
-            <button
-              onClick={() => showModal('gameConfig')}
-              className='flex items-center'
-            >
-              {game?.creator_id === player?.id ? (
-                <Sliders className='w-6 h-6 md:w-8 md:h-8' />
-              ) : (
-                <Info className='w-6 h-6 md:w-8 md:h-8' />
-              )}
+        <div className='flex gap-6 flex-col'>
+          <div className='flex justify-between items-center'>
+            <span>
+              <button
+                onClick={() => showModal('gameConfig')}
+                className='flex items-center'
+              >
+                {game?.creator_id === player?.id ? (
+                  <Sliders className='w-6 h-6 md:w-8 md:h-8' />
+                ) : (
+                  <Info className='w-6 h-6 md:w-8 md:h-8' />
+                )}
+              </button>
+            </span>
+            <span className='uppercase flex justify-center w-full'>
+              <button onClick={showPossibilities}>
+                <Separated content={game?.prefix} className='separated-min' />
+              </button>
+            </span>
+            <button onClick={() => showModal('leaveGame')}>
+              <X className='w-6 h-6 md:w-8 md:h-8' />
             </button>
-          </span>
-          <span className='uppercase flex justify-center w-full'>
-            <button onClick={showPossibilities}>
-              <Separated content={game?.prefix} className='separated-min' />
-            </button>
-          </span>
-          <button onClick={() => showModal('leaveGame')}>
-            <X className='w-6 h-6 md:w-8 md:h-8' />
-          </button>
+          </div>
+          <div className='flex flex-col shrink'>
+            <AnimatePresence> 
+              <div className='flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6 overflow-auto shrink'>
+                {game?.state === 'in_progress' &&
+                  turns.map((turn) => (
+                    <Turn
+                      turn={turn}
+                      color={avatars[turn?.player_id] || 'fff'}
+                      key={turn.created_at}
+                      points={players[turn.player_id]?.points}
+                    />
+                  ))}
+
+                {game?.state === 'not_ready' &&
+                  players &&
+                  Object.keys(players)
+                    .filter((p) => p !== player?.id)
+                    .map((p) => (
+                      <Turn
+                        turn={players[p].ready ? 'Ready' : 'Not ready'}
+                        color={avatars[p] || 'fff'}
+                        key={`state-${p}`}
+                      />
+                    ))}
+
+                {game?.state === 'not_started' &&
+                  Object.keys(players)
+                    .filter((p) => p !== player?.id)
+                    .map((p) => (
+                      <Turn
+                        turn='Joined'
+                        color={avatars[p] || 'fff'}
+                        key={`state-${p}`}
+                      />
+                    ))}
+              </div>
+            </AnimatePresence>
+          </div>
         </div>
       )}
 
-      <div className='grow flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6'>
-        <AnimatePresence>
-          {game?.state === 'in_progress' &&
-            turns.map((turn) => (
-              <Turn
-                turn={turn}
-                color={avatars[turn?.player_id] || 'fff'}
-                key={turn.created_at}
-                points={players[turn.player_id]?.points}
-              />
-            ))}
-
-          {game?.state === 'not_ready' &&
-            players &&
-            Object.keys(players)
-              .filter((p) => p !== player?.id)
-              .map((p) => (
-                <Turn
-                  turn={players[p].ready ? 'Ready' : 'Not ready'}
-                  color={avatars[p] || 'fff'}
-                  key={`state-${p}`}
-                />
-              ))}
-
-          {game?.state === 'not_started' &&
-            Object.keys(players)
-              .filter((p) => p !== player?.id)
-              .map((p) => (
-                <Turn
-                  turn='Joined'
-                  color={avatars[p] || 'fff'}
-                  key={`state-${p}`}
-                />
-              ))}
-        </AnimatePresence>
-      </div>
-
-      <div className='fixed bottom-20 sm:bottom-24 md:bottom-28 lg:bottom-32 flex w-full flex-col right-0 px-4 sm:px-6 md:px-8'>
+      <div className='flex w-full h-min flex-col flex-shrink-0'>
         {game?.state === 'not_ready' ? (
           <button
             onClick={toggleIsReady}
-            className={`btn uppercase ${
+            className={`btn uppercase flex items-center py-3 sm:py-4 md:py-5 h-full ${
               isReady ? 'btn-secondary' : 'btn-primary'
             }`}
           >
@@ -747,7 +750,7 @@ const Game = () => {
         ) : (
           <button
             onClick={copyIdToClipboard}
-            className='btn btn-secondary uppercase'
+            className='btn btn-secondary uppercase flex items-center py-3 sm:py-4 md:py-5 h-full'
           >
             <Separated content='Copy ID' className='separated-min' />
           </button>
