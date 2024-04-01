@@ -46,10 +46,10 @@ const Join = () => {
       className='w-full h-full grid place-items-center place-content-center gap-3 md:gap-6'
     >
       <InputField onChange={idChangeHandler} required>
-        <Link />
+        <Link className='w-6 h-6 md:w-8 md:h-8' />
       </InputField>
       <InputField onChange={passwordChangeHandler} className='normal-case'>
-        <Key />
+        <Key className='w-6 h-6 md:w-8 md:h-8' />
       </InputField>
       <Button type='submit' className='btn-primary w-full'>
         Join

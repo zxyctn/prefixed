@@ -140,18 +140,18 @@ const Home = () => {
   }, []);
 
   return (
-    <div className='overflow-x-auto no-scrollbar'>
+    <div className='overflow-x-auto no-scrollbar pt-1 sm:pt-3'>
       <table className='table table-lg table-pin-cols m-auto'>
         <thead className=''>
           <tr>
             <th className='w-1/3'>
-              <Globe className='m-auto text-secondary' />
+              <Globe className='m-auto text-secondary w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
             </th>
             <th className='w-1/3'>
-              <Hash className='m-auto text-secondary' />
+              <Hash className='m-auto text-secondary w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
             </th>
             <th className='w-1/3'>
-              <Users className='m-auto text-secondary' />
+              <Users className='m-auto text-secondary w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
             </th>
           </tr>
         </thead>

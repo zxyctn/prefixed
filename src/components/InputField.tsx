@@ -17,8 +17,8 @@ const InputField = ({
 }: InputFieldProps) => {
   return (
     <div
-      className={`bg-transparent border-2 border-secondary md:px-6 px-4 justify-between items-center w-min-[300px] h-[70px] md:h-[80px] ${
-        vertical ? 'grid' : 'flex gap-4'
+      className={`bg-transparent border-2 sm:text-xl md:text-2xl border-secondary md:px-6 px-4 justify-between items-center w-min-[300px] h-[70px] md:h-[100px] ${
+        vertical ? 'grid sm:h-[100px] md:h-[120px]' : 'flex gap-4'
       }`}
     >
       {children ? (

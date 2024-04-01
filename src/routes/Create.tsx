@@ -97,7 +97,7 @@ const Create = () => {
             onChange={langChangeHandler}
             required
           >
-            <Globe />
+            <Globe className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
           </InputField>
         </div>
         <div className='w-[120px] md:w-[200px]'>
@@ -109,7 +109,7 @@ const Create = () => {
             value={prefix}
             required
           >
-            <Hash />
+            <Hash className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
           </InputField>
         </div>
         <div className='w-[75px] md:w-[100px]'>
@@ -123,7 +123,7 @@ const Create = () => {
             onChange={numberOfPlayersChangeHandler}
             required
           >
-            <Users />
+            <Users className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
           </InputField>
         </div>
       </div>
@@ -150,7 +150,7 @@ const Create = () => {
             value={turnDuration}
             required
           >
-            <Clock />
+            <Clock className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
           </InputField>
 
           <InputField
@@ -159,7 +159,7 @@ const Create = () => {
             onChange={passwordHandler}
             value={password}
           >
-            <Key />
+            <Key className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
           </InputField>
         </div>
       </Modal>

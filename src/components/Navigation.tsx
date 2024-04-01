@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Hash, Home, LogIn, Plus, Settings } from 'react-feather';
 import { useRecoilValue } from 'recoil';
 import { currentGameState } from '../stores';
-import Separated from './Separated';
 
 const Navigation = ({ page }: { page: string }) => {
   const navigate = useNavigate();
@@ -22,14 +21,19 @@ const Navigation = ({ page }: { page: string }) => {
   };
 
   return (
-    <div className='flex justify-between p-6 md:px-14'>
+    <div className='flex justify-between p-6 sm:p-8 lg:p-10 md:px-14 lg:px-20 items-center'>
       <Home
         onClick={() => navigate('/prefixed/')}
-        className={isCurrent('/prefixed/')}
+        className={
+          isCurrent('/prefixed/') + ' w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10'
+        }
       />
       <Plus
         onClick={() => navigate('/prefixed/create')}
-        className={isCurrent('/prefixed/create')}
+        className={
+          isCurrent('/prefixed/create') +
+          ' w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10'
+        }
       />
       <Hash
         onClick={() =>
@@ -39,19 +43,26 @@ const Navigation = ({ page }: { page: string }) => {
             }`
           )
         }
-        className={isCurrent(
-          `/prefixed/game${
-            gameState.state === 'in_progress' ? `/${gameState.id}` : ''
-          }`
-        )}
+        className={
+          isCurrent(
+            `/prefixed/game${
+              gameState.state === 'in_progress' ? `/${gameState.id}` : ''
+            }`
+          ) + ' w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10'
+        }
       />
       <LogIn
         onClick={() => navigate('/prefixed/join')}
-        className={isCurrent('/prefixed/join')}
+        className={
+          isCurrent('/prefixed/join') + ' w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10'
+        }
       />
       <Settings
         onClick={() => navigate('/prefixed/settings')}
-        className={isCurrent('/prefixed/settings')}
+        className={
+          isCurrent('/prefixed/settings') +
+          ' w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10'
+        }
       />
     </div>
   );
