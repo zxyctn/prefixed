@@ -31,15 +31,15 @@ const Turn = ({
     <motion.div {...animations}>
       <div
         key={typeof turn !== 'string' ? turn.id : turn}
-        className='flex gap-3 items-center'
+        className='flex gap-3 sm:gap-4 md:gap-5 items-center h-full'
       >
-        <div className='block'>
+        <div className='flex items-center'>
           <div
             className={points !== null ? 'tooltip tooltip-right' : ''}
             data-tip={`${points} ${points === 1 ? 'point' : 'points'}`}
           >
             <div
-              className='w-3 h-3'
+              className='w-3 h-3 md:w-4 md:h-4'
               style={{
                 background: color,
               }}
@@ -51,19 +51,19 @@ const Turn = ({
         turn.repeated !== undefined &&
         turn.existent !== undefined ? (
           turn.repeated ? (
-            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+            <div className='uppercase separated text-lg sm:text-xl md:text-2xl lg:text-3xl text-neutral roboto-bold overflow-x-auto'>
               repeated
             </div>
           ) : !turn.word.length && !turn.existent && !turn.accepted ? (
-            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+            <div className='uppercase separated text-lg sm:text-xl md:text-2xl lg:text-3xl text-neutral roboto-bold overflow-x-auto'>
               EXPIRED
             </div>
           ) : !turn.existent && !turn.accepted ? (
-            <div className='uppercase separated text-lg text-neutral roboto-bold overflow-x-auto'>
+            <div className='uppercase separated text-lg sm:text-xl md:text-2xl lg:text-3xl text-neutral roboto-bold overflow-x-auto'>
               NONEXISTENT
             </div>
           ) : (
-            <div className='separated uppercase text-lg overflow-x-auto'>
+            <div className='separated uppercase text-lg sm:text-xl md:text-2xl lg:text-3xl overflow-x-auto'>
               {turn.word}
             </div>
           )

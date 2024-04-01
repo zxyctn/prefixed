@@ -614,28 +614,33 @@ const Game = () => {
   }, [turn]);
 
   return (
-    <div className='h-full w-full p-4 flex flex-col'>
-      <div className='flex justify-between pb-4 items-center'>
-        {game && (
-          <>
-            <span>
-              <button onClick={() => showModal('gameConfig')}>
-                {game?.creator_id === player?.id ? <Sliders /> : <Info />}
-              </button>
-            </span>
-            <span className='uppercase flex justify-center w-full text-lg'>
-              <button onClick={showPossibilities}>
-                <Separated content={game?.prefix} className='separated-min' />
-              </button>
-            </span>
-            <button onClick={() => showModal('leaveGame')}>
-              <X />
+    <div className='h-full w-full p-4 sm:px-6 md:px-8 flex flex-col'>
+      {game && (
+        <div className='flex justify-between pb-4 sm:pb-6 items-center'>
+          <span>
+            <button
+              onClick={() => showModal('gameConfig')}
+              className='flex items-center'
+            >
+              {game?.creator_id === player?.id ? (
+                <Sliders className='w-6 h-6 md:w-8 md:h-8' />
+              ) : (
+                <Info className='w-6 h-6 md:w-8 md:h-8' />
+              )}
             </button>
-          </>
-        )}
-      </div>
+          </span>
+          <span className='uppercase flex justify-center w-full'>
+            <button onClick={showPossibilities}>
+              <Separated content={game?.prefix} className='separated-min' />
+            </button>
+          </span>
+          <button onClick={() => showModal('leaveGame')}>
+            <X className='w-6 h-6 md:w-8 md:h-8' />
+          </button>
+        </div>
+      )}
 
-      <div className='grow flex flex-col gap-3'>
+      <div className='grow flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6'>
         <AnimatePresence>
           {game?.state === 'in_progress' &&
             turns.map((turn) => (
@@ -672,7 +677,7 @@ const Game = () => {
         </AnimatePresence>
       </div>
 
-      <div className='fixed bottom-20 flex w-full flex-col right-0 px-4'>
+      <div className='fixed bottom-20 sm:bottom-24 md:bottom-28 lg:bottom-32 flex w-full flex-col right-0 px-4 sm:px-6 md:px-8'>
         {game?.state === 'not_ready' ? (
           <button
             onClick={toggleIsReady}
@@ -706,12 +711,12 @@ const Game = () => {
               )}
               <div className=''>
                 <div
-                  className={`relative bg-neutral flex items-center px-3 ${
+                  className={`relative bg-neutral flex items-center px-3 sm:px-4 md:px-5 ${
                     disabled.value && 'text-gray-500 brightness-50'
                   }`}
                 >
                   <div
-                    className='w-3 h-3 '
+                    className='w-3 h-3 md:w-4 md:h-4'
                     style={{
                       background: player ? avatars[player.id] : '#fff',
                     }}
@@ -719,21 +724,21 @@ const Game = () => {
 
                   <input
                     type='text'
-                    className='p-3 bg-transparent w-10/12 uppercase separated-min'
+                    className='p-3 sm:p-4 md:p-5 bg-transparent w-10/12 uppercase separated-min sm:text-xl md:text-2xl'
                     value={word}
                     onChange={changeHandler}
                     onKeyDown={keystrokeHandler}
                     disabled={disabled.value}
                   />
                   <button
-                    className={`absolute right-3 bottom-3 ${
+                    className={`absolute right-3 bottom-3 sm:right-4 sm:bottom-4 md:right-5 md:bottom-5  ${
                       disabled.value ? ' btn-disabled' : ''
                     }`}
                     onClick={insertTurn}
                     disabled={disabled.value}
                     type='button'
                   >
-                    <Send size={20} />
+                    <Send className='w-6 h-6 md:w-8 md:h-8' />
                   </button>
                 </div>
               </div>
@@ -793,26 +798,26 @@ const Game = () => {
       <Modal id='gameConfig' title='specs'>
         <div className='grid gap-3'>
           <div className='border border-secondary'>
-            <div className='flex gap-5 w-min p-3'>
-              <Users />
+            <div className='flex gap-5 w-min p-3 sm:p-4 lg:p-5 text-lg sm:text-xl md:text-2xl items-center'>
+              <Users className='w-6 h-6 md:w-8 md:h-8' />
               {game?.number_of_players}
             </div>
           </div>
           <div className='border border-secondary'>
-            <div className='flex gap-5 w-min p-3'>
-              <Hash />
+            <div className='flex gap-5 w-min p-3 sm:p-4 lg:p-5 text-lg sm:text-xl md:text-2xl items-center'>
+              <Hash className='w-6 h-6 md:w-8 md:h-8' />
               <Separated content={game?.prefix} />
             </div>
           </div>
           <div className='border border-secondary'>
-            <div className='flex gap-5 w-min p-3'>
-              <Globe />
+            <div className='flex gap-5 w-min p-3 sm:p-4 lg:p-5 text-lg sm:text-xl md:text-2xl items-center'>
+              <Globe className='w-6 h-6 md:w-8 md:h-8' />
               <span className='uppercase separated-min'>{game?.lang}</span>
             </div>
           </div>
           <div className='border border-secondary'>
-            <div className='flex gap-5 w-min p-3'>
-              <Clock />
+            <div className='flex gap-5 w-min p-3 sm:p-4 lg:p-5 text-lg sm:text-xl md:text-2xl items-center'>
+              <Clock className='w-6 h-6 md:w-8 md:h-8' />
               {game?.turn_duration}
               <div className='uppercase separated-min'>seconds</div>
             </div>
