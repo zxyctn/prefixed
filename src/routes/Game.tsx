@@ -614,147 +614,148 @@ const Game = () => {
   }, [turn]);
 
   return (
-    <div className='h-full w-full pt-4 px-4 sm:px-6 md:px-8 flex flex-col justify-between'>
+    <div className='h-full min-h-full w-full pt-4 px-4 sm:px-6 md:px-8 flex flex-col'>
       {game && (
-        <div className='flex gap-6 flex-col'>
-          <div className='flex justify-between items-center'>
-            <span>
-              <button
-                onClick={() => showModal('gameConfig')}
-                className='flex items-center'
-              >
-                {game?.creator_id === player?.id ? (
-                  <Sliders className='w-6 h-6 md:w-8 md:h-8' />
-                ) : (
-                  <Info className='w-6 h-6 md:w-8 md:h-8' />
-                )}
-              </button>
-            </span>
-            <span className='uppercase flex justify-center w-full'>
-              <button onClick={showPossibilities}>
-                <Separated content={game?.prefix} className='separated-min' />
-              </button>
-            </span>
-            <button onClick={() => showModal('leaveGame')}>
-              <X className='w-6 h-6 md:w-8 md:h-8' />
+        <div className='flex justify-between items-center mb-4'>
+          <span>
+            <button
+              onClick={() => showModal('gameConfig')}
+              className='flex items-center'
+            >
+              {game?.creator_id === player?.id ? (
+                <Sliders className='w-6 h-6 md:w-8 md:h-8' />
+              ) : (
+                <Info className='w-6 h-6 md:w-8 md:h-8' />
+              )}
             </button>
-          </div>
-          <div className='flex flex-col shrink'>
-            <AnimatePresence> 
-              <div className='flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6 overflow-auto shrink'>
-                {game?.state === 'in_progress' &&
-                  turns.map((turn) => (
-                    <Turn
-                      turn={turn}
-                      color={avatars[turn?.player_id] || 'fff'}
-                      key={turn.created_at}
-                      points={players[turn.player_id]?.points}
-                    />
-                  ))}
-
-                {game?.state === 'not_ready' &&
-                  players &&
-                  Object.keys(players)
-                    .filter((p) => p !== player?.id)
-                    .map((p) => (
-                      <Turn
-                        turn={players[p].ready ? 'Ready' : 'Not ready'}
-                        color={avatars[p] || 'fff'}
-                        key={`state-${p}`}
-                      />
-                    ))}
-
-                {game?.state === 'not_started' &&
-                  Object.keys(players)
-                    .filter((p) => p !== player?.id)
-                    .map((p) => (
-                      <Turn
-                        turn='Joined'
-                        color={avatars[p] || 'fff'}
-                        key={`state-${p}`}
-                      />
-                    ))}
-              </div>
-            </AnimatePresence>
-          </div>
+          </span>
+          <span className='uppercase flex justify-center w-full'>
+            <button onClick={showPossibilities}>
+              <Separated content={game?.prefix} className='separated-min' />
+            </button>
+          </span>
+          <button onClick={() => showModal('leaveGame')}>
+            <X className='w-6 h-6 md:w-8 md:h-8' />
+          </button>
         </div>
       )}
 
-      <div className='flex w-full h-min flex-col flex-shrink-0'>
-        {game?.state === 'not_ready' ? (
-          <button
-            onClick={toggleIsReady}
-            className={`btn uppercase flex items-center py-3 sm:py-4 md:py-5 h-full ${
-              isReady ? 'btn-secondary' : 'btn-primary'
-            }`}
-          >
-            <Separated
-              content={`Ready${!isReady ? '?' : ''}`}
-              className='separated-min'
-            />
-          </button>
-        ) : game?.state === 'in_progress' ? (
-          <div>
-            {disabled.value && (
-              <span
-                className='uppercase separated-min bg-primary p-2 text-xs flex w-full'
-                key={disabled.value ? 1 : 0}
-              >
-                {disabled.message}
-              </span>
-            )}
-            <div className='grid gap-0 relative'>
-              {turn?.startedAt && (
-                <div className='bg-neutral/50'>
-                  <div
-                    className='transition-all duration-1000 ease-linear bg-primary h-2 '
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              )}
-              <div className=''>
-                <div
-                  className={`relative bg-neutral flex items-center px-3 sm:px-4 md:px-5 ${
-                    disabled.value && 'text-gray-500 brightness-50'
-                  }`}
-                >
-                  <div
-                    className='w-3 h-3 md:w-4 md:h-4'
-                    style={{
-                      background: player ? avatars[player.id] : '#fff',
-                    }}
-                  ></div>
+      <div className='grow h-0 overflow-auto pb-4'>
+        <div className='flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6 w-full h-auto'>
+          <AnimatePresence>
+            {game?.state === 'in_progress' &&
+              turns.map((turn) => (
+                <Turn
+                  turn={turn}
+                  color={avatars[turn?.player_id] || 'fff'}
+                  key={turn.created_at}
+                  points={players[turn.player_id]?.points}
+                />
+              ))}
 
-                  <input
-                    type='text'
-                    className='p-3 sm:p-4 md:p-5 bg-transparent w-10/12 uppercase separated-min sm:text-xl md:text-2xl'
-                    value={word}
-                    onChange={changeHandler}
-                    onKeyDown={keystrokeHandler}
-                    disabled={disabled.value}
+            {game?.state === 'not_ready' &&
+              players &&
+              Object.keys(players)
+                .filter((p) => p !== player?.id)
+                .map((p) => (
+                  <Turn
+                    turn={players[p].ready ? 'Ready' : 'Not ready'}
+                    color={avatars[p] || 'fff'}
+                    key={`state-${p}`}
                   />
-                  <button
-                    className={`absolute right-3 bottom-3 sm:right-4 sm:bottom-4 md:right-5 md:bottom-5  ${
-                      disabled.value ? ' btn-disabled' : ''
+                ))}
+
+            {game?.state === 'not_started' &&
+              Object.keys(players)
+                .filter((p) => p !== player?.id)
+                .map((p) => (
+                  <Turn
+                    turn='Joined'
+                    color={avatars[p] || 'fff'}
+                    key={`state-${p}`}
+                  />
+                ))}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className='grid'>
+        <div className='place-self-end w-full'>
+          {game?.state === 'not_ready' ? (
+            <button
+              onClick={toggleIsReady}
+              className={`btn uppercase flex items-center py-3 sm:py-4 md:py-5 h-full ${
+                isReady ? 'btn-secondary' : 'btn-primary'
+              }`}
+            >
+              <Separated
+                content={`Ready${!isReady ? '?' : ''}`}
+                className='separated-min'
+              />
+            </button>
+          ) : game?.state === 'in_progress' ? (
+            <div>
+              {disabled.value && (
+                <span
+                  className='uppercase separated-min bg-primary p-2 text-xs flex w-full'
+                  key={disabled.value ? 1 : 0}
+                >
+                  {disabled.message}
+                </span>
+              )}
+              <div className='grid gap-0 relative'>
+                {turn?.startedAt && (
+                  <div className='bg-neutral/50'>
+                    <div
+                      className='transition-all duration-1000 ease-linear bg-primary h-2 '
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                )}
+                <div className=''>
+                  <div
+                    className={`relative bg-neutral flex items-center px-3 sm:px-4 md:px-5 ${
+                      disabled.value && 'text-gray-500 brightness-50'
                     }`}
-                    onClick={insertTurn}
-                    disabled={disabled.value}
-                    type='button'
                   >
-                    <Send className='w-6 h-6 md:w-8 md:h-8' />
-                  </button>
+                    <div
+                      className='w-3 h-3 md:w-4 md:h-4'
+                      style={{
+                        background: player ? avatars[player.id] : '#fff',
+                      }}
+                    ></div>
+
+                    <input
+                      type='text'
+                      className='p-3 sm:p-4 md:p-5 bg-transparent w-10/12 uppercase separated-min sm:text-xl md:text-2xl'
+                      value={word}
+                      onChange={changeHandler}
+                      onKeyDown={keystrokeHandler}
+                      disabled={disabled.value}
+                    />
+                    <button
+                      className={`absolute right-3 bottom-3 sm:right-4 sm:bottom-4 md:right-5 md:bottom-5  ${
+                        disabled.value ? ' btn-disabled' : ''
+                      }`}
+                      onClick={insertTurn}
+                      disabled={disabled.value}
+                      type='button'
+                    >
+                      <Send className='w-6 h-6 md:w-8 md:h-8' />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <button
-            onClick={copyIdToClipboard}
-            className='btn btn-secondary uppercase flex items-center py-3 sm:py-4 md:py-5 h-full'
-          >
-            <Separated content='Copy ID' className='separated-min' />
-          </button>
-        )}
+          ) : (
+            <button
+              onClick={copyIdToClipboard}
+              className='btn btn-secondary uppercase flex items-center py-3 sm:py-4 md:py-5 h-full'
+            >
+              <Separated content='Copy ID' className='separated-min' />
+            </button>
+          )}
+        </div>
       </div>
 
       <Confirm

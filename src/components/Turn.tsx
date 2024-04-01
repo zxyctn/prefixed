@@ -28,7 +28,7 @@ const Turn = ({
   };
 
   return (
-    <motion.div {...animations}>
+    <motion.div {...animations} className=''>
       <div
         key={typeof turn !== 'string' ? turn.id : turn}
         className='flex gap-3 sm:gap-4 md:gap-5 items-center h-full'
