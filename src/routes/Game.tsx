@@ -679,12 +679,12 @@ const Game = () => {
         </div>
       </div>
 
-      <div className='grid'>
+      <div className='grid w-full'>
         <div className='place-self-end w-full'>
           {game?.state === 'not_ready' ? (
             <button
               onClick={toggleIsReady}
-              className={`btn uppercase flex items-center py-3 sm:py-4 md:py-5 h-full ${
+              className={`w-full btn uppercase flex items-center py-3 sm:py-4 md:py-5 h-full ${
                 isReady ? 'btn-secondary' : 'btn-primary'
               }`}
             >
@@ -750,7 +750,7 @@ const Game = () => {
           ) : (
             <button
               onClick={copyIdToClipboard}
-              className='btn btn-secondary uppercase flex items-center py-3 sm:py-4 md:py-5 h-full'
+              className='w-full btn btn-secondary uppercase flex items-center py-3 sm:py-4 md:py-5 h-full'
             >
               <Separated content='Copy ID' className='separated-min' />
             </button>
