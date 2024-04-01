@@ -262,6 +262,7 @@ const Game = () => {
           setGame(data);
           setWord(data.prefix);
           setTurns(data.turns ? [...data.turns].reverse() : []);
+
           data.players.forEach((p) => {
             setPlayers((old) => ({
               ...old,
@@ -284,9 +285,13 @@ const Game = () => {
               setTurn({
                 value: p.turn,
                 startedAt:
-                  p.turn === data.turn ? new Date(p.timer_started_at) : null,
+                  p.turn === data.turn && p.timer_started_at
+                    ? new Date(p.timer_started_at)
+                    : null,
                 endsAt:
-                  p.turn === data.turn ? new Date(p.timer_will_end_at) : null,
+                  p.turn === data.turn && p.timer_will_end_at
+                    ? new Date(p.timer_will_end_at)
+                    : null,
                 ended: false,
               });
             }
@@ -356,7 +361,7 @@ const Game = () => {
             const diff = new Date().getTime() - old.startedAt.getTime();
             const duration = game!.turn_duration! * 1000;
 
-            if (new Date() >= turn.endsAt!) {
+            if (turn.endsAt && new Date() >= turn.endsAt) {
               return { ...old, startedAt: null, endsAt: null, ended: true };
             }
 
@@ -374,6 +379,7 @@ const Game = () => {
         clearInterval(interval);
       };
     } else if (turn && !turn.startedAt && !turn.endsAt && turn.ended) {
+      console.log(turn);
       insertEmptyAfterTimeout();
     }
 
@@ -394,7 +400,43 @@ const Game = () => {
             event: 'UPDATE',
             schema: 'public',
             table: 'game_players',
-            filter: `player_id=neq.${player?.id}`,
+            filter: `game_id=eq.${game?.id}`,
+          },
+          (payload) => {
+            setPlayers((old) => ({
+              ...old,
+              [payload.new.player_id]: {
+                points: payload.new.points,
+                ready: payload.new.ready,
+                turn: payload.new.turn,
+                is_turn: payload.new.is_turn,
+              },
+            }));
+
+            if (
+              payload.new.is_turn === true &&
+              payload.new.player_id === player?.id
+            ) {
+              setTurn((old) => ({
+                value: old?.value || 0,
+                startedAt: payload.new.timer_started_at
+                  ? new Date(payload.new.timer_started_at)
+                  : null,
+                endsAt: payload.new.timer_will_end_at
+                  ? new Date(payload.new.timer_will_end_at)
+                  : null,
+                ended: false,
+              }));
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'game_players',
+            filter: `game_id=eq.${game?.id}`,
           },
           (payload) => {
             setPlayers((old) => ({
@@ -417,6 +459,8 @@ const Game = () => {
             filter: `game_id=eq.${id}`,
           },
           (payload) => {
+            console.log(payload);
+
             setTurns((old) =>
               [
                 ...old,
@@ -453,7 +497,7 @@ const Game = () => {
                 toast.error(error.message);
               }
 
-              if (data) {
+              if (data && payload.new.joined_players < game!.joined_players) {
                 Object.keys(players).forEach((p) => {
                   if (
                     !data.some((d) => d.player_id === p) &&
@@ -476,7 +520,10 @@ const Game = () => {
               state: payload.new.state,
               joined_players: payload.new.joined_players,
             }));
-            resetStates();
+
+            if (payload.new.turn !== turn?.value) {
+              resetStates();
+            }
           }
         )
         .on(
@@ -520,37 +567,6 @@ const Game = () => {
                 toast.error(error.message);
               }
               resetStates();
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'game_players',
-            filter: `player_id=eq.${player?.id}`,
-          },
-          (payload) => {
-            resetStates();
-
-            if (payload.new.is_turn === true) {
-              setTurn((old) => ({
-                value: old?.value || 0,
-                startedAt: new Date(payload.new.timer_started_at) || null,
-                endsAt: new Date(payload.new.timer_will_end_at) || null,
-                ended: false,
-              }));
-
-              setPlayers((old) => ({
-                ...old,
-                [payload.new.player_id]: {
-                  points: payload.new.points,
-                  ready: payload.new.ready,
-                  turn: payload.new.turn,
-                  is_turn: payload.new.is_turn,
-                },
-              }));
             }
           }
         )
