@@ -45,7 +45,7 @@ const Join = () => {
       onSubmit={submitHandler}
       className='w-full h-full grid place-items-center place-content-center gap-3 md:gap-6'
     >
-      <InputField onChange={idChangeHandler}>
+      <InputField onChange={idChangeHandler} required>
         <Link />
       </InputField>
       <InputField onChange={passwordChangeHandler} className='normal-case'>
