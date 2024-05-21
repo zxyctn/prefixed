@@ -15,9 +15,7 @@ const ForgotPassword = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://example.com/update-password',
-    });
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) {
       console.error(error);
       toast.error(error.message);
