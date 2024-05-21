@@ -42,6 +42,7 @@ const InputField = ({
         <select
           className='bg-transparent uppercase flex w-min justify-center items-center'
           onChange={onChange}
+          defaultValue={value}
         >
           {options.map((o) => (
             <option value={o.value} key={o.value}>
