@@ -53,3 +53,11 @@ export const getTurns = (game_id: string, supabase: SupabaseClient) => {
 export const leaveGame = (player_id, supabase) => {
   return supabase.from('game_players').delete().eq('player_id', player_id);
 };
+
+export const showModal = (modalId) => {
+  (document.getElementById(modalId) as HTMLDialogElement).showModal();
+};
+
+export const hideModal = (modalId) => {
+  (document.getElementById(modalId) as HTMLDialogElement).close();
+};

@@ -25,7 +25,7 @@ import {
   currentUser,
   isLoading,
 } from '../stores';
-import { leaveGame } from '../shared';
+import { leaveGame, showModal, hideModal } from '../shared';
 import type { CurrentTurnType, GameTurnType } from '../types';
 
 const Game = () => {
@@ -80,14 +80,6 @@ const Game = () => {
     clearInterval(expirationInterval);
     setExpirationTimeout(null);
     setExpirationInterval(null);
-  };
-
-  const showModal = (modalId) => {
-    (document.getElementById(modalId) as HTMLDialogElement).showModal();
-  };
-
-  const hideModal = (modalId) => {
-    (document.getElementById(modalId) as HTMLDialogElement).close();
   };
 
   const onStartPoll = async (vote_type: 'NOT_EXISTS') => {
