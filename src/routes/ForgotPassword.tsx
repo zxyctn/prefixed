@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { ArrowLeft, User } from 'react-feather';
+import { ArrowLeft, AtSign } from 'react-feather';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 
@@ -33,7 +33,7 @@ const ForgotPassword = () => {
     <div className='w-full h-full p-6 m-auto flex justify-center items-center'>
       <form className='grid gap-6 ' onSubmit={submitHandler}>
         <InputField type='email' required={true} onChange={changeHandler}>
-          <User className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10' />
+          <AtSign className='' />
         </InputField>
 
         <Button className='btn-primary' type='submit'>

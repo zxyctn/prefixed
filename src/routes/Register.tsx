@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { User, Key } from 'react-feather';
+import { Key, AtSign } from 'react-feather';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import InputField from '../components/InputField';
@@ -54,7 +54,7 @@ const Register = () => {
     <div className='w-full h-full p-6 m-auto flex justify-center items-center'>
       <form className='grid gap-6 ' onSubmit={submitHandler}>
         <InputField type='email' required={true} onChange={onEmailChange}>
-          <User />
+          <AtSign />
         </InputField>
 
         <InputField type='password' required={true} onChange={onPasswordChange}>
