@@ -60,14 +60,16 @@ const Root = ({ page, setPage }) => {
       session === null &&
       location.pathname !== '/prefixed/register' &&
       location.pathname !== '/prefixed/login' &&
-      location.pathname !== '/prefixed/forgot-password'
+      location.pathname !== '/prefixed/forgot-password' &&
+      location.pathname !== '/prefixed/demo'
     ) {
       navigate('/prefixed/login');
     } else if (
       session &&
       (location.pathname === '/prefixed/login' ||
         location.pathname === '/prefixed/register' ||
-        location.pathname === '/prefixed/forgot-password')
+        location.pathname === '/prefixed/forgot-password' ||
+        location.pathname === '/prefixed/demo')
     ) {
       navigate('/prefixed/');
     }

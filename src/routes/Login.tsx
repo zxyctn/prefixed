@@ -69,6 +69,17 @@ const Login = () => {
         >
           <Separated content='Forgot password?' />
         </button>
+        <div className='divider text-neutral-400 py-5'>
+          <Separated content='OR' />
+        </div>
+        <Button
+          className='btn-outline'
+          onClick={() => {
+            navigate('/prefixed/demo');
+          }}
+        >
+          Demo
+        </Button>
       </form>
     </div>
   );

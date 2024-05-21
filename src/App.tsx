@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import Game from './routes/Game';
+import Demo from './routes/Demo';
 import Root from './routes/root';
 import Home from './routes/Home';
 import Login from './routes/Login';
@@ -25,6 +26,10 @@ const App = () => {
         {
           path: '',
           element: <Home />,
+        },
+        {
+          path: 'demo',
+          element: <Demo />,
         },
         {
           path: 'login',
